@@ -16,6 +16,7 @@ class Entity:
     surface_form: str
     class_label: str
     kb_link:str
+    kb_links:list[str]
 
     def __str__(self):
         return f"\"{self.surface_form}\" - [{self.plain_start}-{self.plain_end}], Class: {self.class_label}, KB: {self.kb_link}]  "
