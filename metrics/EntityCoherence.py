@@ -9,19 +9,20 @@ def rq_url(search_term):
     return f"https://en.wikipedia.org/w/api.php?action=query&format=json&prop=&list=search&formatversion=2&srsearch={search_term}&srlimit=1&srinfo=totalhits"
 
 def get_hits(search_term):
-    sleep(0.03)
+    sleep(0.1)
     rq = requests.get(rq_url(search_term))
     try:
         return rq.json()["query"]["searchinfo"]["totalhits"]
     except KeyError:
         print(f"(Coherence) No results in search for '{search_term}', returning 0")
         return 0
+    
 #normalized wiki distance
 def NWD(term1, term2, cached_requests = {}):
     N = 6942644000 #get_hits("the")
-    x = cached_requests[term1] = cached_requests.get(term1,get_hits(term1))
-    y = cached_requests[term2] = cached_requests.get(term2,get_hits(term2))
-    xy = cached_requests[f"{term1} {term2}"] = cached_requests[f"{term2} {term1}"] = cached_requests.get(f"{term1} {term2}",get_hits(f"{term1} {term2}")) 
+    x = cached_requests[term1] = cached_requests.get(term1, get_hits(term1))
+    y = cached_requests[term2] = cached_requests.get(term2, get_hits(term2))
+    xy = cached_requests[f"{term1} {term2}"] =  cached_requests[f"{term2} {term1}"] = cached_requests.get(f"{term1} {term2}", get_hits(f"{term1} {term2}")) 
     
     if x == 0 or y == 0 or xy == 0:
         return 1 #float("inf")
@@ -30,13 +31,13 @@ def NWD(term1, term2, cached_requests = {}):
     log_x = log(x,2)
     log_y = log(y,2)
     log_xy = log(xy,2)
-    return ( max(log_x,log_y) - log_xy) / (log(N,2) - min(log_x, log_y))
+    return ( max(log_x,log_y) - log_xy) / (log_N - min(log_x, log_y))
 
 
 def EntityCoherence(dataset):
     if isinstance(dataset,Dataset):
         documents = dataset.documents
-    elif isinstance(dataset,list):
+    elif isinstance(dataset,list) and isinstance(dataset[0],Document):
         documents = dataset
     elif isinstance(dataset,Document):
         documents = [dataset]
@@ -51,6 +52,7 @@ def EntityCoherence(dataset):
     dataset_NWD_micro = 0 #all entities
     dataset_NWD_macro = 0 #averaged over documents
     entities_count = 0
+    documentsNWD = {}
 
     for document in documents:
         entities_count += len(document.entities)
@@ -64,13 +66,20 @@ def EntityCoherence(dataset):
             neighbourNWD = (NWD(e,eb,cached_requests) + NWD(e,ef,cached_requests)) / 2
             doc_sum_nwd += neighbourNWD
             #print(neighbourNWD) 
+        doc_nwd = doc_sum_nwd/len(document.entities)
 
         dataset_NWD_micro += doc_sum_nwd #entities sum
-        dataset_NWD_macro += doc_sum_nwd/len(document.entities) #document nwd
+        dataset_NWD_macro += doc_nwd #document nwd
+        documentsNWD[document.name] = doc_nwd
+        #document.name
 
     dataset_NWD_micro /= entities_count
     dataset_NWD_macro /= len(documents)
-    print(f"micro:{dataset_NWD_micro}, macro:{dataset_NWD_macro}")
-
+    # print(f"micro:{dataset_NWD_micro}, macro:{dataset_NWD_macro}")
+    return {
+        "micro_NWD": dataset_NWD_micro,
+        "macro_NWD": dataset_NWD_macro,
+        "per_document_NWD": documentsNWD
+    }
  
 

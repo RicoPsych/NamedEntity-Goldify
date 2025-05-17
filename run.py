@@ -3,8 +3,9 @@ from loaders.NifLoader import NifLoader
 
 from metrics.EntityOccurence import EntityOccurence
 from metrics.EntityCoherence import EntityCoherence
+from metrics.ContextDispersity import ContextDispersity
 
-dataset = ElGoldLoader.LoadDatasetLocal("D:\Informatyka\Magisterka\code\datasets\elgold\data")
+dataset = ElGoldLoader.LoadDatasetLocal("D:\\Informatyka\\Magisterka\\code\\datasets\\elgold\\data")
 # print("Top10Doc:")
 # CountOccurenceClassDocument(dataset.documents[0])
 # CountOccurenceKBDocument(dataset.documents[0])
@@ -17,8 +18,11 @@ dataset = ElGoldLoader.LoadDatasetLocal("D:\Informatyka\Magisterka\code\datasets
 # full_path = "D:\\Informatyka\\Magisterka\\code\\datasets\\niffy relabeled\\categorized_EMNLP_datasets\\categorizedVoxEL.ttl"
 # dataset = NifLoader.LoadDatasetLocal(full_path)
 
-# kbOccurence = CountOccurence(dataset, "kb")
+#kbOccurence = EntityOccurence(dataset, "kb", "")
 # classOccurence = CountOccurence(dataset, "class")
-coherence = EntityCoherence(dataset.documents[0])
+# coherence = EntityCoherence(dataset.documents[1:2])
+# print(coherence)
+
+dispersity = ContextDispersity(dataset)
 
 pass

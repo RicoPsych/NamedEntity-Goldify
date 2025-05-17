@@ -6,7 +6,7 @@
     "configurations": [
         
         {
-            "name": "Python Debugger: Current File",
+            "name": "Python Debugger: Run main file",
             "type": "debugpy",
             "request": "launch",
             "program": "${cwd}/run.py",
