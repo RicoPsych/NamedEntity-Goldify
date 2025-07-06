@@ -1,0 +1,30 @@
+{
+    "languageTool":{
+        "container_name":"languagetool",
+        "image_name":"erikvl87/languagetool",
+        "dockerfile":"",
+        "ports": [
+            ["8010","8010"]
+        ]
+        
+    },
+    "languageToolKwargs":{
+        "name":"languagetool",
+        "image":"erikvl87/languagetool",
+        "ports": {"8010/tcp":"8010"}
+    },
+    "dbpedia_spotlight":{
+        "container_name":"dbpedia-spotlight",
+        "image_name":"dbpedia/dbpedia-spotlight",
+        "dockerfile":"",
+        "ports": [
+            ["2222","80"]
+        ]
+        
+    },
+    "dbpediaKwargs":{
+        "name":"languagetool",
+        "image":"erikvl87/languagetool",
+        "ports": {"8010/tcp":"8010"}
+    }
+}

@@ -13,3 +13,6 @@ def EntityConsistency(dataset, aggregate_field):
         raise "Invalid Input dataset"
 
 
+    print("Entity Consistency")
+    
+    print("Done")

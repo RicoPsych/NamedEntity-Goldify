@@ -1,15 +1,16 @@
+import requests
+import tqdm
 from time import sleep
 from models.Dataset import Dataset
 from models.Document import Document
 from models.Entity import Entity
-import requests
 from math import log 
 
 def rq_url(search_term): 
     return f"https://en.wikipedia.org/w/api.php?action=query&format=json&prop=&list=search&formatversion=2&srsearch={search_term}&srlimit=1&srinfo=totalhits"
 
 def get_hits(search_term):
-    sleep(0.1)
+    sleep(1)
     rq = requests.get(rq_url(search_term))
     try:
         return rq.json()["query"]["searchinfo"]["totalhits"]
@@ -46,7 +47,6 @@ def EntityCoherence(dataset):
     
     # Number of results for "the", proxy for total pages
     #N = get_hits("the")# 6942644000
-        
     cached_requests = {}
 
     dataset_NWD_micro = 0 #all entities
@@ -54,7 +54,8 @@ def EntityCoherence(dataset):
     entities_count = 0
     documentsNWD = {}
 
-    for document in documents:
+    print("Entity Coherence:")
+    for document in tqdm.tqdm(documents):
         entities_count += len(document.entities)
 
         doc_sum_nwd = 0
@@ -72,6 +73,7 @@ def EntityCoherence(dataset):
         dataset_NWD_macro += doc_nwd #document nwd
         documentsNWD[document.name] = doc_nwd
         #document.name
+    print("Done")
 
     dataset_NWD_micro /= entities_count
     dataset_NWD_macro /= len(documents)

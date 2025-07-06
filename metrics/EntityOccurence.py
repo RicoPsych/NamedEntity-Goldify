@@ -1,4 +1,6 @@
 from pathlib import Path
+
+import tqdm
 from models.Dataset import Dataset
 from models.Document import Document
 from models.Entity import Entity
@@ -24,9 +26,11 @@ def EntityOccurence(dataset, aggregate_field, results_path = None):
     else:
         raise "Invalid Input dataset"
 
+    print("Entity Occurence")
+
     _entities = {}
     entities_count = 0
-    for doc in documents:
+    for doc in tqdm.tqdm(documents):
         for entity in doc.entities:
             key = EntityFieldSwitch(entity)[aggregate_field]
             _entities[key] = _entities.get(key,0) + 1
@@ -41,6 +45,7 @@ def EntityOccurence(dataset, aggregate_field, results_path = None):
         "entities_count":entities_count
         }
 
+    print("Done")
 
 
     if results_path is not None:
@@ -54,6 +59,8 @@ def EntityOccurence(dataset, aggregate_field, results_path = None):
             file.write(json_result)
     # for k,v in list(zip(sorted_entities_count.keys(),sorted_entities_count.values()))[:10]:
     #     print(f"{k}:{v}")
+
+
 
     return result
 

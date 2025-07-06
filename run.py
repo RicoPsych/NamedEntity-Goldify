@@ -1,28 +1,40 @@
+from dockerize.DockerManager import DockerManager
 from loaders.RegexLoader import ElGoldLoader 
 from loaders.NifLoader import NifLoader
 
 from metrics.EntityOccurence import EntityOccurence
 from metrics.EntityCoherence import EntityCoherence
-from metrics.ContextDispersity import ContextDispersity
+from metrics.ContextDispersity import ContextDispersity, AnnotationDispersity
+from metrics.GrammarCorrectness import GrammarCorrectness 
 
-dataset = ElGoldLoader.LoadDatasetLocal("D:\\Informatyka\\Magisterka\\code\\datasets\\elgold\\data")
-# print("Top10Doc:")
-# CountOccurenceClassDocument(dataset.documents[0])
-# CountOccurenceKBDocument(dataset.documents[0])
+from Utilities import SaveResult
 
-# print("Top10Dataset:")
-# CountOccurenceClass(dataset)
-# CountOccurenceKB(dataset)
+DockerManager() #Instantiate DockerManager Singleton
 
-#full_path = "D:\\Informatyka\\Magisterka\\code\\datasets\\niffy relabeled\\EL_exp\\Gold\\2019_05_19_KORE50.ttl"
-# full_path = "D:\\Informatyka\\Magisterka\\code\\datasets\\niffy relabeled\\categorized_EMNLP_datasets\\categorizedVoxEL.ttl"
-# dataset = NifLoader.LoadDatasetLocal(full_path)
+#dataset = ElGoldLoader.LoadDatasetLocal("D:\\Informatyka\\Magisterka\\code\\datasets\\elgold\\data")
+# full_path = "D:\\Informatyka\\Magisterka\\code\\datasets\\niffy relabeled\\EL_exp\\Gold\\2019_05_19_KORE50.ttl"
+full_path = "D:\\Informatyka\\Magisterka\\code\\datasets\\niffy relabeled\\categorized_EMNLP_datasets\\categorizedVoxEL.ttl"
+dataset = NifLoader.LoadDatasetLocal(full_path, "https://en.wikipedia.org/wiki/")
 
-#kbOccurence = EntityOccurence(dataset, "kb", "")
-# classOccurence = CountOccurence(dataset, "class")
 # coherence = EntityCoherence(dataset.documents[1:2])
 # print(coherence)
 
-dispersity = ContextDispersity(dataset)
+# classOccurence = EntityOccurence(dataset, "class")
+# dispersity = ContextDispersity(dataset)
+#kbOccurence = EntityOccurence(dataset, "kb", "")
+#annot_dispersity = AnnotationDispersity(dataset)
+#context_dispersity = ContextDispersity(dataset)
+grammar_correctness = GrammarCorrectness(dataset)
+
+#print(kbOccurence)
+#print(annot_dispersity)
+#print(context_dispersity)
+print(grammar_correctness)
+
+#SaveResult(kbOccurence, "./results" ,"kbOccurence")
+#SaveResult(grammar_correctness, "./results" ,"grammar")
+#SaveResult(annot_dispersity, "./results" ,"annotationDispersity")
+#SaveResult(context_dispersity, "./results" ,"contextDispersity")
+
 
 pass

@@ -3,18 +3,19 @@ from nifwrapper import *
 from models.Entity import Entity
 from models.Document import Document
 from models.Dataset import Dataset
+import tqdm
 
 class NifLoader:
-    def LoadDatasetLocal(path) -> Dataset:
+    def LoadDatasetLocal(path, kb_prefix = "") -> Dataset:
         parser = NIFParser()
-
+        print(f"Loading dataset: {path}")
         with open(path,encoding="utf-8") as file:
             raw_text = file.read()
             wrp_gold = parser.parser_turtle(raw_text)
 
             docs = []
-
-            for document in wrp_gold.documents:
+            index = 0 #for document name
+            for document in tqdm.tqdm(wrp_gold.documents):
     
                 plain_text = document.getAttribute("nif:isString")
                 entities = []
@@ -31,6 +32,7 @@ class NifLoader:
                         
                         nif_classes = annotation.getAttribute("itsrdf:taClassRef")
                         nif_classes_dict = {}
+                        kb_name = kb_link.removeprefix(kb_prefix).replace("_"," ")
 
                         #Get nif classes in dict
                         for c in nif_classes:
@@ -42,11 +44,14 @@ class NifLoader:
                         
                         #TODO: use nif classes to filter entities
                         # entity = Entity(surface_form,"",kb_link,start,end)
-                        entity = Entity(surface_form, nif_classes_dict["el:Ref"], kb_link, start, end)
+
+
+                        entity = Entity(surface_form, nif_classes_dict["el:Ref"], kb_link, kb_name, start, end)
                         entities.append(entity)
 
-                doc = Document("",plain_text,plain_text,entities)
+                doc = Document(index,plain_text,plain_text,entities)
                 docs.append(doc)
+                index+=1
 
         return Dataset(path, docs)
     
