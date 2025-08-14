@@ -17,7 +17,8 @@ class ElGoldLoader:
                 raw_text = file.read()
                 documents.append(ElGoldLoader.LoadDoc(doc_name,raw_text))
         
-        dataset = Dataset(path,documents)
+        name = Path(path).stem
+        dataset = Dataset(path, documents, name)
         return dataset
 
     def LoadDoc(name, raw_text:str) -> Document: #regex, delimiter ,

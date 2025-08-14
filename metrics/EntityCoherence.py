@@ -1,3 +1,4 @@
+import random
 import requests
 import tqdm
 from time import sleep
@@ -5,13 +6,14 @@ from models.Dataset import Dataset
 from models.Document import Document
 from models.Entity import Entity
 from math import log 
+from Utilities import get_proxy_list
 
 def rq_url(search_term): 
-    return f"https://en.wikipedia.org/w/api.php?action=query&format=json&prop=&list=search&formatversion=2&srsearch={search_term}&srlimit=1&srinfo=totalhits"
+    return f"http://en.wikipedia.org/w/api.php?action=query&format=json&prop=&list=search&formatversion=2&srsearch={search_term}&srlimit=1&srinfo=totalhits"
 
-def get_hits(search_term):
-    sleep(1)
-    rq = requests.get(rq_url(search_term))
+def get_hits(search_term,proxy_dict = None):
+    #sleep(0.05) since requests are done sequentially, the sleep is not needed
+    rq = requests.get(rq_url(search_term),proxies=proxy_dict)
     try:
         return rq.json()["query"]["searchinfo"]["totalhits"]
     except KeyError:
@@ -19,11 +21,12 @@ def get_hits(search_term):
         return 0
     
 #normalized wiki distance
-def NWD(term1, term2, cached_requests = {}):
+#for each NWD - max 3 requests
+def NWD(term1, term2, cached_requests = {}, proxy_dict = None):
     N = 6942644000 #get_hits("the")
-    x = cached_requests[term1] = cached_requests.get(term1, get_hits(term1))
-    y = cached_requests[term2] = cached_requests.get(term2, get_hits(term2))
-    xy = cached_requests[f"{term1} {term2}"] =  cached_requests[f"{term2} {term1}"] = cached_requests.get(f"{term1} {term2}", get_hits(f"{term1} {term2}")) 
+    x = cached_requests[term1] = cached_requests.get(term1, get_hits(term1, proxy_dict))
+    y = cached_requests[term2] = cached_requests.get(term2, get_hits(term2, proxy_dict))
+    xy = cached_requests[f"{term1} {term2}"] =  cached_requests[f"{term2} {term1}"] = cached_requests.get(f"{term1} {term2}", get_hits(f"{term1} {term2}", proxy_dict)) 
     
     if x == 0 or y == 0 or xy == 0:
         return 1 #float("inf")
@@ -48,6 +51,7 @@ def EntityCoherence(dataset):
     # Number of results for "the", proxy for total pages
     #N = get_hits("the")# 6942644000
     cached_requests = {}
+    proxies_list = get_proxy_list()
 
     dataset_NWD_micro = 0 #all entities
     dataset_NWD_macro = 0 #averaged over documents
@@ -55,15 +59,16 @@ def EntityCoherence(dataset):
     documentsNWD = {}
 
     print("Entity Coherence:")
-    for document in tqdm.tqdm(documents):
+    for document in tqdm.tqdm(documents,desc="Documents"):
         entities_count += len(document.entities)
 
         doc_sum_nwd = 0
-        for i in range(len(document.entities)):
-            e = document.entities[i].kb_link
-            eb = document.entities[i-1 if i - 1 >= 0 else i + 1].kb_link
-            ef = document.entities[i+1 if i + 1 < len(document.entities) else i - 1].kb_link
-
+        for i in tqdm.tqdm(range(len(document.entities)),desc="Entities"):
+            e = document.entities[i].kb_name
+            eb = document.entities[i-1 if i - 1 >= 0 else i + 1].kb_name
+            ef = document.entities[i+1 if i + 1 < len(document.entities) else i - 1].kb_name
+            #proxy_dict = random.choice(proxies_list)
+            #for each entity 2x NWD -> 6x requests for each entitiy 
             neighbourNWD = (NWD(e,eb,cached_requests) + NWD(e,ef,cached_requests)) / 2
             doc_sum_nwd += neighbourNWD
             #print(neighbourNWD) 

@@ -1,0 +1,14 @@
+### 
+GET http://localhost:5555/docs
+
+###
+POST http://localhost:5555/ne
+
+{
+"text":"Barack Obama was the president of the USA",
+"tagger":"ner-fast-with-lowercase"
+}
+
+### 
+GET http://localhost:5555/docs
+

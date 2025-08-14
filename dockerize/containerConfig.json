@@ -1,30 +1,122 @@
 {
     "languageTool":{
-        "container_name":"languagetool",
-        "image_name":"erikvl87/languagetool",
-        "dockerfile":"",
-        "ports": [
-            ["8010","8010"]
-        ]
-        
-    },
-    "languageToolKwargs":{
-        "name":"languagetool",
-        "image":"erikvl87/languagetool",
-        "ports": {"8010/tcp":"8010"}
+        "request":{
+            "url":"http://localhost:8010/v2/check",
+            "params":"text=$TEXT_DATA$&language=en-US&enabledOnly=false",
+            "paramss":{
+                "text":"$TEXT_DATA$",
+                "language":"en-US",
+                "enabledOnly":false
+            }
+        },
+        "docker":{  
+            "name":"languagetool",
+            "image":"erikvl87/languagetool",
+            "ports": {"8010/tcp":"8010"}
+        }
     },
     "dbpedia_spotlight":{
-        "container_name":"dbpedia-spotlight",
-        "image_name":"dbpedia/dbpedia-spotlight",
-        "dockerfile":"",
-        "ports": [
-            ["2222","80"]
-        ]
-        
+        "for_completeness": true,
+        "request":{
+            "url":"http://localhost:2222/rest/annotate", 
+            "body":"text=$TEXT_DATA$&confidence=0.35",
+            "headers":{
+                "content-type":"application/x-www-form-urlencoded",
+                "Accept":"application/json"
+            },
+            "temp":{"Accept":"text/turtle"}
+        },
+        "docker":{   
+            "name":"dbpedia-spotlight.en",
+            "image":"dbpedia/dbpedia-spotlight",
+            "ports": {"80/tcp":"2222"},
+            "stdin_open":true,
+            "tty":true,
+            "mounts":[
+                {
+                    "source":"spotlight-model", 
+                    "target":"/opt/spotlight",
+                    "type":"volume"
+                }
+            ],
+            "command":"spotlight.sh en"
+        }
     },
-    "dbpediaKwargs":{
-        "name":"languagetool",
-        "image":"erikvl87/languagetool",
-        "ports": {"8010/tcp":"8010"}
+    "stanford_ner":{
+        "for_completeness": true,
+        "request":{
+            "url":"http://localhost:9000/",
+            "params":"properties={\"annotators\":\"tokenize,ner\",\"outputFormat\":\"json\"}",
+            "paramss":{
+                "properties":{
+                    "annotators":"tokenize,ner",
+                    "outputFormat":"json"
+                    }
+                },
+            "body":"$TEXT_DATA$"
+        },
+        "docker":{
+            "name":"coreNLP",
+            "image":"nlpbox/corenlp",
+            "ports": {"9000/tcp":"9000"},
+            "stdin_open":true,
+            "tty":true
+        }
+    },
+    "wikifier":{
+
+    },
+    "rel":{
+        "for_completeness": true,
+        "request":{
+            "url":"http://localhost:5555/ne",
+            "body": "{\"text\":\"$TEXT_DATA$\",\"tagger\":\"ner-fast-with-lowercase\"}",
+            "bodyss": {
+                "text":"$TEXT_DATA$",
+                "tagger":"ner-fast-with-lowercase"
+            }
+        },
+        "response_type":"",
+        "docker":{
+            "name":"rel",
+            "image":"informagi/rel",
+            "ports": {"5555/tcp":"5555"},
+            "stdin_open":true,
+            "tty":true,
+            "volumes":["$PWD$\\dockerize\\containers_data\\rel:/workspace/data"],
+            "command":"python -m REL.server --bind 0.0.0.0 --port 5555 /workspace/data wiki_2019 --ner-model  ner-fast-with-lowercase"
+        }
+    },
+    "spacy":{
+        "for_completeness": true,
+        "request":{
+            "url":"http://localhost:8080/ent",
+            "body": "{\"text\":\"$TEXT_DATA$\", \"model\":\"en\"}"
+        },
+        "docker":{
+            "name":"spacy",
+            "image":"jgontrum/spacyapi:en_v2",
+            "ports":{"80/tcp":"8080"},
+            "stdin_open":true,
+            "tty":true
+        }
+    },
+    "consistency_checker":{
+        "build":{
+            "dockerfile":"$PWD$\\dockerize\\consistency_checker\\",
+            "tag":"consistency_checker"
+        },
+        "request":{
+            "url":"http://localhost:8000/",
+            "params":"file_name=$TEXT_DATA$"
+        },
+        "docker":{
+            "name":"consistency_checker",
+            "image":"consistency_checker",
+            "ports":{"8000/tcp":"8000"},
+            "stdin_open":true,
+            "tty":true,
+            "volumes":["$PWD$\\dockerize\\containers_data\\spacy:/consistency/data"]
+        }
     }
 }

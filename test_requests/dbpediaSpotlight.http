@@ -1,0 +1,4 @@
+###
+POST http://localhost:9000/?properties={"annotators":"tokenize,ner","outputFormat":"json"}
+
+Barack Obama was the president of the USA

@@ -5,9 +5,6 @@ from models.Dataset import Dataset
 from models.Document import Document
 from models.Entity import Entity
 
-
-
-import requests
 import json 
 import tqdm
 

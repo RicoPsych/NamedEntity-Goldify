@@ -1,0 +1,9 @@
+###
+POST http://localhost:9000/?properties={"annotators":"tokenize,ner","outputFormat":"json"}
+
+Barack Obama was the president of the USA. Donald Trump is now a new president.
+
+###
+POST http://localhost:9000/?properties={"annotators":"tokenize,ner","outputFormat":"text"}
+
+Barack Obama was the president of the USA
