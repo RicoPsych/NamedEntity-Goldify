@@ -5,7 +5,6 @@ class Dataset:
         self.path = path
         self.documents = documents
         self.name = name
-    type: str
     name: str
     path: str
     documents: list[Document]

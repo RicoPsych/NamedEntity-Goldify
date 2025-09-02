@@ -4,12 +4,25 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
-        
         {
-            "name": "Python Debugger: Run main file",
+            "name": "Python Debugger: Visualisation",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${cwd}/visualise.py",
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Python Debugger: Run assessment pipeline",
             "type": "debugpy",
             "request": "launch",
             "program": "${cwd}/run.py",
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Configure and prepare system components",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${cwd}/prepare_system.py",
             "console": "integratedTerminal"
         }
     ]

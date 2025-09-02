@@ -1,11 +1,12 @@
 import subprocess
 import time
 import docker
+import docker.types
 import docker.errors
 import json
 from pathlib import Path
 
-from Utilities import Singleton, retry_post
+from Utilities import Singleton, retry_get, retry_post
 
 class DockerManager(metaclass=Singleton):
     client:docker.DockerClient
@@ -39,12 +40,16 @@ class DockerManager(metaclass=Singleton):
     #         self.available_containers = list(self.global_config.keys())
 
     def start_container(self, config_name, detach = True, command = None):
-        config = self.global_config[config_name].get("docker", None)
+        full_container_config = self.global_config[config_name]
+        run_config = full_container_config.get("docker", None)
+        
+        if full_container_config.get("gpu",False) == True:
+            run_config["device_requests"]=[docker.types.DeviceRequest(capabilities=[['gpu']],count=-1,driver='nvidia')]
 
-        if config is not None:
-            container_name = config["name"]
-            image_name = config.get("image","")
-            docker_file_path = config.get("dockerfile","") 
+        if run_config is not None:
+            container_name = run_config["name"]
+            image_name = run_config.get("image","")
+            docker_file_path = run_config.get("dockerfile","") 
             #ports = config["ports"]
             #container_port = ports[0][0]
             #host_port = ports[0][1]
@@ -63,8 +68,8 @@ class DockerManager(metaclass=Singleton):
                         print(f"Pulling: {container_name}")
                         img = self.client.images.pull(image_name)
 
-                #container = self.client.containers.run(image=img, name=container_name, ports = {f'{container_port}/tcp':host_port}, detach=True)
-                container = self.client.containers.run(**config, detach = detach, command = command)
+                #container = self.client.containers.run(image=img, name=container_name, ports = {f'{container_port}/tcp':host_port}, detach=True) --gpus all
+                container = self.client.containers.run(**run_config, detach = detach, command = command)
             #time.sleep(3)
             print(f"Started: {container_name}")
             return container
@@ -88,24 +93,35 @@ class DockerManager(metaclass=Singleton):
             return [config_name for config_name in self.available_containers if self.global_config[config_name].get("for_completeness", False) ]
         return self.available_containers
 
-    def send_request_to_container(self, config_name, data, infinite_retry = False, incremental=True, retry_delay = 3):
+    def send_request_to_container(self, config_name, data_list: str | list[str], infinite_retry = False, incremental=True, retry_delay = 3):
         rq_config = self.global_config[config_name].get("request", None) 
-        data = data.replace("\"","\\\"")
         if rq_config is not None:
             url = rq_config["url"]
-            url = url.replace("$TEXT_DATA$", data)
+            headers = rq_config.get("headers", None)
+            params = rq_config.get("params", None)
+            body = rq_config.get("body", None)
 
-            headers = rq_config.get("headers",None)
+            
+            if not isinstance(data_list,list):
+                data_list = [data_list]
 
-            params = rq_config.get("params",None)
-            if params is not None:
-                params = params.replace("$TEXT_DATA$", data)
-
-            body = rq_config.get("body",None)
-            if body is not None:
-                body = body.replace("$TEXT_DATA$", data)
+            for i, data in enumerate(data_list):
+                parsed_data = data.replace("\"","\\\"")
+                str_to_replace = "$TEXT_DATA$" if len(data_list) == 1 else f"$TEXT_DATA_{i}$"
+                url = url.replace(str_to_replace, parsed_data)
+                if params is not None:
+                    params = params.replace(str_to_replace, parsed_data)
+                if body is not None:
+                    body = body.replace(str_to_replace, parsed_data)
         
-            return retry_post(url, params = params, data = body, headers = headers, sleep_time = retry_delay, incremental=incremental, infinite_retry=infinite_retry)
+            method = rq_config.get("method", "POST")
+            if method == "GET":
+                return retry_get(url, params = params, data = body, headers = headers, sleep_time = retry_delay, incremental=incremental, infinite_retry=infinite_retry)
+            elif method == "POST":
+                return retry_post(url, params = params, data = body, headers = headers, sleep_time = retry_delay, incremental=incremental, infinite_retry=infinite_retry)
+            else:
+                print(f"Config's {config_name} request method undefined.")
+                return None
         else:
             print(f"Config {config_name} does not have request defined.")
             return None

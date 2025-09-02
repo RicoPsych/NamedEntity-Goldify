@@ -12,7 +12,25 @@
         "docker":{  
             "name":"languagetool",
             "image":"erikvl87/languagetool",
-            "ports": {"8010/tcp":"8010"}
+            "ports": {"8010/tcp":"8010"},
+            "environment":{
+                "Java_Xms":"512m", 
+                "Java_Xmx":"2g"
+            }
+        }
+    },
+    "spacy":{
+        "for_completeness": true,
+        "request":{
+            "url":"http://localhost:8080/ent",
+            "body": "{\"text\":\"$TEXT_DATA$\", \"model\":\"en\"}"
+        },
+        "docker":{
+            "name":"spacy",
+            "image":"jgontrum/spacyapi:en_v2",
+            "ports":{"80/tcp":"8080"},
+            "stdin_open":true,
+            "tty":true
         }
     },
     "dbpedia_spotlight":{
@@ -63,8 +81,20 @@
             "tty":true
         }
     },
-    "wikifier":{
-
+    "flair":{
+        "for_completeness":true,
+        "request":{
+            "method":"GET",
+            "url":"http://localhost:5000/",
+            "params":"text=$TEXT_DATA$"
+        },
+        "docker":{
+            "name":"flair",
+            "image":"samhavens/flair-as-service:en-full",
+            "ports":{"5000/tcp":"5000"},
+            "stdin_open":true,
+            "tty":true
+        }
     },
     "rel":{
         "for_completeness": true,
@@ -87,20 +117,6 @@
             "command":"python -m REL.server --bind 0.0.0.0 --port 5555 /workspace/data wiki_2019 --ner-model  ner-fast-with-lowercase"
         }
     },
-    "spacy":{
-        "for_completeness": true,
-        "request":{
-            "url":"http://localhost:8080/ent",
-            "body": "{\"text\":\"$TEXT_DATA$\", \"model\":\"en\"}"
-        },
-        "docker":{
-            "name":"spacy",
-            "image":"jgontrum/spacyapi:en_v2",
-            "ports":{"80/tcp":"8080"},
-            "stdin_open":true,
-            "tty":true
-        }
-    },
     "consistency_checker":{
         "build":{
             "dockerfile":"$PWD$\\dockerize\\consistency_checker\\",
@@ -108,7 +124,7 @@
         },
         "request":{
             "url":"http://localhost:8000/",
-            "params":"file_name=$TEXT_DATA$"
+            "params":"file_name=$TEXT_DATA_0$&lang=$TEXT_DATA_1$"
         },
         "docker":{
             "name":"consistency_checker",
@@ -117,6 +133,7 @@
             "stdin_open":true,
             "tty":true,
             "volumes":["$PWD$\\dockerize\\containers_data\\spacy:/consistency/data"]
-        }
+        },
+        "gpu":true
     }
 }

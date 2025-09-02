@@ -6,6 +6,7 @@ import concurrent.futures
 
 from pathlib import Path
 import time
+from typing import Literal
 from dockerize.DockerManager import DockerManager
 from models.Dataset import Dataset
 from models.Document import Document
@@ -21,11 +22,11 @@ def transform_to_spacy(document:Document) -> dict:
     return spacy_document
     #{'text': 'Schedule a calendar event in Teak oaks HOA about competitions happening tomorrow', 'entities': [(0, 8, 'ACTION'), (11, 25, 'DOMAIN'), (29, 42, 'HOA'), (49, 71, 'EVENT'), (72, 80, 'DATE')]}
 
-def request_coroutine(manager:DockerManager, dataset_spacy_name):
+def request_coroutine(manager:DockerManager, dataset_spacy_name, lang):
     print("Consistency request sent")
-    return manager.send_request_to_container("consistency_checker", dataset_spacy_name)
+    return manager.send_request_to_container("consistency_checker", [dataset_spacy_name, lang])
 
-def EntityConsistency(dataset, chunk_num):
+def EntityConsistency(dataset, chunk_num, lang:Literal["en","es","fr","de"] = "en"):
     if isinstance(dataset,Dataset):
         documents = dataset.documents
     elif isinstance(dataset,list) and isinstance(dataset[0],Document):
@@ -55,7 +56,7 @@ def EntityConsistency(dataset, chunk_num):
     container = manager.start_container("consistency_checker")
     #start request and print container logs
     with concurrent.futures.ThreadPoolExecutor() as executor:
-        future = executor.submit(request_coroutine, manager, dataset_spacy_name)
+        future = executor.submit(request_coroutine, manager, dataset_spacy_name, lang)
         logs_stream = container.logs(stream = True, tail=10)
         while not future.done():
             line = next(logs_stream).decode("utf-8", errors="ignore")

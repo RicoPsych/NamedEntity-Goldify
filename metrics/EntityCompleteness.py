@@ -144,9 +144,12 @@ def EntityCompleteness(dataset):
         manager.start_container(contaiNER_config_name)
 
         document_index = 0
-        for document in tqdm(documents, desc="documents"):
+        for document in tqdm(documents, desc="documents"): 
             response = manager.send_request_to_container(contaiNER_config_name, document.plain_text)
-            document_entities = response_manager.parse_response(response, contaiNER_config_name)
+            if response.status_code != 200:
+                print(f"An error occured with request for {contaiNER_config_name}\n text = {document.plain_text}")
+                raise ConnectionError
+            document_entities = response_manager.parse_response(response, contaiNER_config_name, document.plain_text)
             document_entities = sorted(document_entities,key= lambda a : a[0]) #sort entities (order of entities may not be kept)
             document_entities = remove_nested_entities(document_entities) # removes nested entities in each system output
             ner_outputs_documents[document_index][contaiNER_config_name] = document_entities
@@ -201,6 +204,10 @@ def EntityCompleteness(dataset):
     
     strict_completeness = count_completeness(strict_new_entities_docs, ners_count, gold_entity_count, per_doc_gold_entity_count)    
     fuzzy_completeness = count_completeness(fuzzy_new_entities_docs, ners_count, gold_entity_count, per_doc_gold_entity_count)    
+
+ 
+    fuzzy_new_entities_docs =  [dict([(' '.join(map(str,key)), [count_dict[key][0], list(count_dict[key][1])]) for key in count_dict]) for count_dict in fuzzy_new_entities_docs]
+    strict_new_entities_docs = [dict([(' '.join(map(str,key)), [count_dict[key][0], list(count_dict[key][1])]) for key in count_dict]) for count_dict in strict_new_entities_docs] 
 
     result = {
         "strict_completeness": strict_completeness["completeness"],

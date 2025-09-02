@@ -5,7 +5,7 @@ from pathlib import Path
 from spacy.tokens import DocBin
 from spacy.util import filter_spans
 from spacy import displacy
-from statistics import stdev
+from statistics import stdev, fmean
 from tqdm import tqdm
 
 def to_docbin(document,nlp):
@@ -34,6 +34,8 @@ def measure_scores_strict(predicted_docs, standard_docs):
     macro_recall=0
     macro_f1=0
 
+    per_document_results = []
+
     for i in range(docs_num):
         predicted = predicted_docs[i]
         standard = standard_docs[i]
@@ -54,8 +56,6 @@ def measure_scores_strict(predicted_docs, standard_docs):
 
         precision = tp / (tp + fp)
         recall = tp / (tp + fn)
-
-        
         f1 = 2 * precision * recall / (precision + recall) if (precision * recall) !=0 else 0
 
         total_tp += tp
@@ -65,6 +65,7 @@ def measure_scores_strict(predicted_docs, standard_docs):
         macro_precision += precision
         macro_recall += recall
         macro_f1 += f1
+        per_document_results.append({"f1":f1, "precision":precision, "recall":recall})
 
     micro_precision = total_tp / (total_tp + total_fp)
     micro_recall = total_tp / (total_tp + total_fn)
@@ -76,7 +77,8 @@ def measure_scores_strict(predicted_docs, standard_docs):
 
     return {
             "micro": {"f1":micro_f1, "precision":micro_precision, "recall":micro_recall},
-            "macro": {"f1":macro_f1, "precision":macro_precision, "recall":macro_recall} 
+            "macro": {"f1":macro_f1, "precision":macro_precision, "recall":macro_recall},
+            "per_document": per_document_results 
         }
 
 def ConsistencyResults(dataset_path):
@@ -106,12 +108,23 @@ def ConsistencyResults(dataset_path):
         models_scores.append(score)
 
     result = {
+        "micro_average_f1": fmean([score["micro"]["f1"] for score in models_scores]),
+        "micro_average_precision": fmean([score["micro"]["precision"] for score in models_scores]),
+        "micro_average_recall": fmean([score["micro"]["recall"] for score in models_scores]),
+
         "micro_f1_stdev" : stdev([score["micro"]["f1"] for score in models_scores]),
         "micro_precision_stdev" :stdev([score["micro"]["precision"] for score in models_scores]),
         "micro_recall_stdev" : stdev([score["micro"]["recall"] for score in models_scores]),
 
+        "macro_average_f1": fmean([score["macro"]["f1"] for score in models_scores]),
+        "macro_average_precision": fmean([score["macro"]["precision"] for score in models_scores]),
+        "macro_average_recall": fmean([score["macro"]["recall"] for score in models_scores]),
+
         "macro_f1_stdev" : stdev([score["macro"]["f1"] for score in models_scores]),
         "macro_precision_stdev" : stdev([score["macro"]["precision"] for score in models_scores]),
-        "macro_recall_stdev" : stdev([score["macro"]["recall"] for score in models_scores])
+        "macro_recall_stdev" : stdev([score["macro"]["recall"] for score in models_scores]),
+
+        "per_model_scores" : [{"macro":model["macro"], "micro":model["micro"]} for model in models_scores],
+        "per_model_per_document_scores": [model["per_document"] for model in models_scores]
     }
     return result

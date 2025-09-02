@@ -26,6 +26,22 @@ class Singleton(type):
             self._instances[self] = instance
         return self._instances[self]
 
+def retry_get(url, params = None, data = None, json=None, headers = None, tries = 10, sleep_time = 3, incremental = False, infinite_retry = False):
+    #sleep_time * 2^(trynum - 1) 
+    #default 3 , 6, 12 , 24, 48, 96 ...
+    while tries > 0 or infinite_retry:
+        try:
+            rq = requests.get(url=url, data=data, json=json, params=params, headers=headers)
+            return rq
+        except requests.ConnectionError:
+            tries -= 1
+            print(f"Connection Error [{url}]. Next try in {sleep_time}s [remaining tries {"infinite" if infinite_retry else tries}]")        
+            time.sleep(sleep_time)
+            if incremental:
+                sleep_time += sleep_time
+    if tries <= 0:
+        raise ConnectionRefusedError("Could not connect to container")
+    
 
 def retry_post(url, params = None, data = None, json=None, headers = None, tries = 10, sleep_time = 3, incremental = False, infinite_retry = False):
     #sleep_time * 2^(trynum - 1) 

@@ -7,13 +7,20 @@ from models.Document import Document
 from models.Entity import Entity
 from math import log 
 from Utilities import get_proxy_list
+from Utilities import Singleton
+
+
+class UserAgent(metaclass=Singleton):
+    def __init__(self, user_agent):
+        self.user_agent_str = user_agent
 
 def rq_url(search_term): 
     return f"http://en.wikipedia.org/w/api.php?action=query&format=json&prop=&list=search&formatversion=2&srsearch={search_term}&srlimit=1&srinfo=totalhits"
 
 def get_hits(search_term,proxy_dict = None):
+    headers = {'User-Agent': UserAgent().user_agent_str}
     #sleep(0.05) since requests are done sequentially, the sleep is not needed
-    rq = requests.get(rq_url(search_term),proxies=proxy_dict)
+    rq = requests.get(rq_url(search_term),headers=headers,proxies=proxy_dict)
     try:
         return rq.json()["query"]["searchinfo"]["totalhits"]
     except KeyError:
@@ -38,7 +45,7 @@ def NWD(term1, term2, cached_requests = {}, proxy_dict = None):
     return ( max(log_x,log_y) - log_xy) / (log_N - min(log_x, log_y))
 
 
-def EntityCoherence(dataset):
+def EntityCoherence(dataset, user_agent = None):
     if isinstance(dataset,Dataset):
         documents = dataset.documents
     elif isinstance(dataset,list) and isinstance(dataset[0],Document):
@@ -48,6 +55,8 @@ def EntityCoherence(dataset):
     else:
         raise "Invalid Input dataset"
     
+    UserAgent( user_agent = user_agent)
+
     # Number of results for "the", proxy for total pages
     #N = get_hits("the")# 6942644000
     cached_requests = {}

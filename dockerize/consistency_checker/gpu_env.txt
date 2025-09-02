@@ -1,0 +1,9 @@
+#steps to create spacy env for consistency checker
+
+conda create -n spacy-train-gpu python=3.12.9
+conda activate spacy-train-gpu
+pip install -U pip setuptools wheel
+pip install torch torchvision --index-url https://download.pytorch.org/whl/cu126
+pip install -U "spacy[cuda126,transformers,lookups]"
+pip install cupy-cuda12x
+python Run_Dev.py

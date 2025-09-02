@@ -16,7 +16,7 @@ class APIResponseManager(metaclass=Singleton):
             self.available_containers = list(self.global_config.keys())
             print(f"Loaded container config form: {config_path}")
 
-    def parse_response(self, response, config_name):
+    def parse_response(self, response, config_name, document_text):
         match config_name:
             case "spacy":
                 entities = parse_spacy_response(response)
@@ -33,6 +33,31 @@ class APIResponseManager(metaclass=Singleton):
             case "dbpedia_spotlight":
                 entities = parse_dbpedia_response(response)
                 return entities
+            
+            case "flair":
+                entities = parse_flair_response(response, document_text)
+                return entities
+
+#document text is used to fix the indexing problem
+#caused by the flair spliting the response into sentences 
+def parse_flair_response(response, document_text):
+    response_sentences_json = response.json()
+    entities = []
+    sentence_start = 0
+    for response_sentence in response_sentences_json: 
+        sentence_text = response_sentence.get("text")
+        #find starting index of the sentence in document text, starting from previous sentence 
+        sentence_start = document_text.find(sentence_text, sentence_start) 
+        response_entities = response_sentence.get("entities",[])
+        for entity in response_entities:
+            surface_form = entity["text"]
+            entity_start = entity["start_pos"] + sentence_start
+            entity_end = entity["end_pos"] + sentence_start
+            #type = entity["type"]
+            entities.append((entity_start, entity_end, surface_form))
+        sentence_start += len(response_sentence.get("text",""))
+        #add the length of the current sentence, next starts from this id
+    return entities
 
 def parse_dbpedia_response(response):
     response_json = response.json()

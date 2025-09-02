@@ -1,52 +1,52 @@
-from dockerize.DockerManager import DockerManager
-from loaders.RegexLoader import ElGoldLoader 
+from loaders.ElgoldLoader import ElGoldLoader 
 from loaders.NifLoader import NifLoader
+from loaders.WikinerLoader import WikinerLoader 
+from loaders.WikinerGoldLoader import WikinerGoldLoader 
 
-from metrics.EntityCompleteness import EntityCompleteness
-from metrics.EntityConsistency import EntityConsistency
-from metrics.EntityOccurence import EntityOccurence
-from metrics.EntityCoherence import EntityCoherence
-from metrics.ContextDispersity import ContextDispersity, AnnotationDispersity
-from metrics.GrammarCorrectness import GrammarCorrectness 
+from pipeline import GoldifyPipeline
+from pipeline import Metrics
 
-from Utilities import SaveResult
+#dataset = ElGoldLoader.LoadDatasetLocal(r"D:\Informatyka\Magisterka\code\datasets\elgold\data")
 
-#DockerManager() #Instantiate DockerManager Singleton
+# full_path = "D:\\Informatyka\\Magisterka\\code\\datasets\\niffy relabeled\\EL_exp\\Gold\\2019_05_19_KORE50.ttl"
 
-#dataset = ElGoldLoader.LoadDatasetLocal("D:\\Informatyka\\Magisterka\\code\\datasets\\elgold\\data")
-#full_path = "D:\\Informatyka\\Magisterka\\code\\datasets\\niffy relabeled\\EL_exp\\Gold\\2019_05_19_KORE50.ttl"
-full_path = "D:\\Informatyka\\Magisterka\\code\\datasets\\niffy relabeled\\categorized_EMNLP_datasets\\categorizedVoxEL.ttl"
-dataset = NifLoader.LoadDatasetLocal(full_path, "https://en.wikipedia.org/wiki/")
+# dataset = NifLoader.LoadDatasetLocal(r"D:\Informatyka\Magisterka\code\datasets\niffy relabeled\categorized_EMNLP_datasets\categorizedVoxEL.ttl", "https://en.wikipedia.org/wiki/")
+# dataset_voxs = NifLoader.LoadDatasetLocal(r"D:\Informatyka\Magisterka\code\datasets\voxel\rVoxEL-en.ttl", "https://en.wikipedia.org/wiki/")
+# dataset_voxr = NifLoader.LoadDatasetLocal(r"D:\Informatyka\Magisterka\code\datasets\voxel\sVoxEL-en.ttl", "https://en.wikipedia.org/wiki/")
 
-# coherence = EntityCoherence(dataset.documents[1:2])
-# print(coherence)
+full_path = r"D:\Informatyka\Magisterka\code\datasets\wikiner\5462500\aij-wikiner-fr-wp2"
+dataset = WikinerLoader.LoadDatasetSentencesLocal(full_path)
 
-# classOccurence = EntityOccurence(dataset, "class")
-# dispersity = ContextDispersity(dataset)
-#kbOccurence = EntityOccurence(dataset, "kb", "")
-#annot_dispersity = AnnotationDispersity(dataset)
-#context_dispersity = ContextDispersity(dataset)
-# grammar_correctness = GrammarCorrectness(dataset)
-#entity_coherence = EntityCoherence(dataset)
+full_path = r"D:\Informatyka\Magisterka\code\datasets\wikiner-fr-pre-gold\wikiner-fr.conll"
+dataset = WikinerLoader.LoadDatasetSentencesLocal(full_path)
 
-entity_consistency = EntityConsistency(dataset, 10)
-#entity_completeness = EntityCompleteness(dataset.documents)
+full_path = r"D:\Informatyka\Magisterka\code\datasets\wikiner-fr-gold\wikiner-fr-gold.conll"
+dataset2 = WikinerGoldLoader.LoadDatasetSentencesLocal(full_path)
 
-#print(kbOccurence)
-#print(annot_dispersity)
-#print(context_dispersity)
-# print(grammar_correctness)
-#print(entity_coherence)
-print(entity_consistency)
-#print(entity_completeness)
+# new_docs = []
+# zzz = 2
+# for doc in dataset2.documents:
+#     new_docs.append(doc)
+#     if len(doc.entities) == 0:
+#         zzz -= 1
 
-#SaveResult(kbOccurence, "./results" ,"kbOccurence")
-#SaveResult(grammar_correctness, "./results" ,"grammar")
-#SaveResult(annot_dispersity, "./results" ,"annotationDispersity")
-#SaveResult(context_dispersity, "./results" ,"contextDispersity")
-#SaveResult(entity_coherence, "./results" ,"entityCoherence")
-#SaveResult(entity_consistency, "./results" ,"entityConsistency")
-#SaveResult(entity_completeness, "./results" ,"entityCompleteness")
+#     if zzz == 0:
+#         break
+# dataset2.documents = new_docs
+# dataset.documents = dataset.documents[:len(new_docs)]
+
+# metrics = [Metrics.GrammarCorrectness, Metrics.OccurenceKB , Metrics.DispersityCtx, Metrics.DispersityAnnot, Metrics.Completeness, Metrics.Coherence ,Metrics.Consistency]
+# metrics = [Metrics.OccurenceClass , Metrics.DispersityCtx, Metrics.DispersityAnnot] #quick
+# metrics = [Metrics.DispersityAnnot ] #quick , Metrics.GrammarCorrectness
+metrics2 = [Metrics.DispersityCtx, Metrics.DispersityAnnot ] #quick , Metrics.GrammarCorrectness
+#metrics = [Metrics.Completeness] #mid 
+#metrics = [Metrics.Coherence, Metrics.Consistency] #long
+# metrics = [Metrics.OccurenceKB] 
+# metrics = [Metrics.Consistency]
+# pipeline = GoldifyPipeline(metrics, consistency_lang="fr")
+pipeline2 = GoldifyPipeline(metrics2, consistency_lang="fr")
+pipeline2.assess_dataset(dataset, "./results")
+pipeline2.assess_dataset(dataset2, "./results")
 
 
 pass

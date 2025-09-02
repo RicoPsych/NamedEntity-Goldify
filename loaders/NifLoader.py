@@ -13,7 +13,7 @@ class NifLoader:
         docs = []
         index = 0 #for document name
         for document in tqdm.tqdm(wrp_gold.documents):
-            plain_text = document.getAttribute("nif:isString")
+            plain_text = document.getAttribute("nif:isString").rstrip()
             entities = []
             for sentence in document.sentences:
                 sentence_start = int(sentence.getAttribute("nif:beginIndex"))
@@ -31,16 +31,17 @@ class NifLoader:
                     kb_name = kb_link.removeprefix(kb_prefix).replace("_"," ")
 
                     #Get nif classes in dict
-                    for c in nif_classes:
-                        c:str
-                        prefix = c.split("-")[0]
-                        nif_classes_dict[prefix] = c
+                    if nif_classes is not None:
+                        for c in nif_classes:
+                            c:str
+                            prefix = c.split("-")[0]
+                            nif_classes_dict[prefix] = c
                     #["el:Mnt","el:PoS","el:Ref","el:Olp"]
                     
                     #TODO: use nif classes to filter entities
                     # entity = Entity(surface_form,"",kb_link,start,end)
-
-                    entity = Entity(surface_form, nif_classes_dict["el:Ref"], kb_link, kb_name, start, end)
+                    class_label = nif_classes_dict.get("el:Ref","")
+                    entity = Entity(surface_form, class_label, kb_link, kb_name, start, end)
                     entities.append(entity)
             doc = Document(index,plain_text,plain_text,entities)
             docs.append(doc)

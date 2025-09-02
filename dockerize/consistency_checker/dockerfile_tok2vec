@@ -1,0 +1,17 @@
+FROM python:3.12.9
+
+RUN python -m pip install --upgrade pip
+RUN mkdir /consistency
+RUN mkdir /consistency/data
+
+#Spacy + Fast Api
+COPY ./requirements_cpu_no_transformers.txt /consistency/requirements.txt
+RUN pip install --default-timeout=1000 -r ./consistency/requirements.txt
+
+#Copy Python Scripts
+COPY . /consistency
+WORKDIR /consistency
+
+CMD ["fastapi", "run", "/consistency/Run.py", "--host", "0.0.0.0", "--port"," 8000"]
+#docker build -t consistency_container -f .\dockerize\consistency_container\dockerfile_tok2vec .\dockerize\consistency_container\
+#docker run -dit --name consistency_checker -p 8000:8000 -v D:\Informatyka\Magisterka\code\NamedEntity-Goldify\dockerize\containers_data\spacy:/consistency/data consistency_checker
