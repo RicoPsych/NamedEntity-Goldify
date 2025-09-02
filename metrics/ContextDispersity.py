@@ -212,11 +212,13 @@ def AnnotationDispersity(dataset):
     print("Micro dispersity")
     mean_entities = vector_dispersity_euclidean(all_entities_vectors)
     mean_entities_angular = vector_dispersity_angular(all_entities_vectors)
-    
+    all_entities_count = len(all_entities_vectors)
+
     #Unique micro dispersities
     print("Micro unique dispersity")
     mean_unique_entities = vector_dispersity_euclidean(list(unique_entities.values()))
     mean_unique_entities_angular = vector_dispersity_angular(list(unique_entities.values()))
+    unique_entities_count = len(unique_entities)
 
     print("Done")
 
@@ -227,7 +229,9 @@ def AnnotationDispersity(dataset):
         "micro_full_angular":mean_entities_angular.tolist(),
         "micro_unique_euclidean": mean_unique_entities.tolist(),
         "micro_unique_angular": mean_unique_entities_angular.tolist(),
-        "documents_without_entities": documents_without_entities #skipped documents in metrics
+        "documents_without_entities": documents_without_entities, #skipped documents in metrics
+        "unique_entities_count": unique_entities_count,
+        "all_entities_count": all_entities_count 
     }    
 
 def ContextDispersity(dataset, results_path = None):
@@ -317,6 +321,7 @@ def ContextDispersity(dataset, results_path = None):
         "context_text_dispersity_angular":mean_texts_angular.tolist(),
 
         "documents_without_entities":documents_without_entities, #skipped in entities dispersity
+        "documents_count": len(documents),
 
         "mean_similarities": mean_similarity,
         "context_vectors_similiarities": context_vectors_similarities

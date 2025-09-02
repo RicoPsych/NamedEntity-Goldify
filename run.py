@@ -10,18 +10,17 @@ from pipeline import Metrics
 
 # full_path = "D:\\Informatyka\\Magisterka\\code\\datasets\\niffy relabeled\\EL_exp\\Gold\\2019_05_19_KORE50.ttl"
 
-# dataset = NifLoader.LoadDatasetLocal(r"D:\Informatyka\Magisterka\code\datasets\niffy relabeled\categorized_EMNLP_datasets\categorizedVoxEL.ttl", "https://en.wikipedia.org/wiki/")
+dataset = NifLoader.LoadDatasetLocal(r"D:\Informatyka\Magisterka\code\datasets\niffy relabeled\categorized_EMNLP_datasets\categorizedVoxEL.ttl", "https://en.wikipedia.org/wiki/")
 # dataset_voxs = NifLoader.LoadDatasetLocal(r"D:\Informatyka\Magisterka\code\datasets\voxel\rVoxEL-en.ttl", "https://en.wikipedia.org/wiki/")
-# dataset_voxr = NifLoader.LoadDatasetLocal(r"D:\Informatyka\Magisterka\code\datasets\voxel\sVoxEL-en.ttl", "https://en.wikipedia.org/wiki/")
+dataset_voxr = NifLoader.LoadDatasetLocal(r"D:\Informatyka\Magisterka\code\datasets\voxel\sVoxEL-en.ttl", "https://en.wikipedia.org/wiki/")
 
-full_path = r"D:\Informatyka\Magisterka\code\datasets\wikiner\5462500\aij-wikiner-fr-wp2"
-dataset = WikinerLoader.LoadDatasetSentencesLocal(full_path)
+# full_path = r"D:\Informatyka\Magisterka\code\datasets\wikiner\5462500\aij-wikiner-fr-wp2"
+# dataset = WikinerLoader.LoadDatasetSentencesLocal(full_path)
 
-full_path = r"D:\Informatyka\Magisterka\code\datasets\wikiner-fr-pre-gold\wikiner-fr.conll"
-dataset = WikinerLoader.LoadDatasetSentencesLocal(full_path)
-
-full_path = r"D:\Informatyka\Magisterka\code\datasets\wikiner-fr-gold\wikiner-fr-gold.conll"
-dataset2 = WikinerGoldLoader.LoadDatasetSentencesLocal(full_path)
+# full_path = r"D:\Informatyka\Magisterka\code\datasets\wikiner-fr-pre-gold\wikiner-fr.conll"
+# dataset = WikinerLoader.LoadDatasetSentencesLocal(full_path)
+# full_path = r"D:\Informatyka\Magisterka\code\datasets\wikiner-fr-gold\wikiner-fr-gold.conll"
+# dataset2 = WikinerGoldLoader.LoadDatasetSentencesLocal(full_path)
 
 # new_docs = []
 # zzz = 2
@@ -46,7 +45,7 @@ metrics2 = [Metrics.DispersityCtx, Metrics.DispersityAnnot ] #quick , Metrics.Gr
 # pipeline = GoldifyPipeline(metrics, consistency_lang="fr")
 pipeline2 = GoldifyPipeline(metrics2, consistency_lang="fr")
 pipeline2.assess_dataset(dataset, "./results")
-pipeline2.assess_dataset(dataset2, "./results")
+pipeline2.assess_dataset(dataset_voxr, "./results")
 
 
 pass
