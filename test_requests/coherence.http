@@ -1,0 +1,1 @@
+get http://en.wikipedia.org/w/api.php?action=query&format=json&prop=&list=search&formatversion=2&srsearch=fifa&srlimit=1&srinfo=totalhits

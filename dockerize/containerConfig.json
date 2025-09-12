@@ -2,8 +2,8 @@
     "languageTool":{
         "request":{
             "url":"http://localhost:8010/v2/check",
-            "params":"text=$TEXT_DATA$&language=en-US&enabledOnly=false",
-            "paramss":{
+            "paramsss":"text=$TEXT_DATA$&language=en-US&enabledOnly=false",
+            "json_params":{
                 "text":"$TEXT_DATA$",
                 "language":"en-US",
                 "enabledOnly":false
@@ -19,25 +19,15 @@
             }
         }
     },
-    "spacy":{
-        "for_completeness": true,
-        "request":{
-            "url":"http://localhost:8080/ent",
-            "body": "{\"text\":\"$TEXT_DATA$\", \"model\":\"en\"}"
-        },
-        "docker":{
-            "name":"spacy",
-            "image":"jgontrum/spacyapi:en_v2",
-            "ports":{"80/tcp":"8080"},
-            "stdin_open":true,
-            "tty":true
-        }
-    },
     "dbpedia_spotlight":{
         "for_completeness": true,
         "request":{
             "url":"http://localhost:2222/rest/annotate", 
             "body":"text=$TEXT_DATA$&confidence=0.35",
+            "json_paramss":{
+                "text":"$TEXT_DATA$",
+                "confidence":"0.35"
+            },
             "headers":{
                 "content-type":"application/x-www-form-urlencoded",
                 "Accept":"application/json"
@@ -64,13 +54,14 @@
         "for_completeness": true,
         "request":{
             "url":"http://localhost:9000/",
-            "params":"properties={\"annotators\":\"tokenize,ner\",\"outputFormat\":\"json\"}",
-            "paramss":{
+            "params":"properties={\"outputFormat\":\"json\"}",
+            "paramss":"properties={\"annotators\":\"tokenize,ner\",\"outputFormat\":\"json\"}",
+            "json_paramss":{
                 "properties":{
                     "annotators":"tokenize,ner",
                     "outputFormat":"json"
-                    }
-                },
+                }
+            },
             "body":"$TEXT_DATA$"
         },
         "docker":{
@@ -78,15 +69,45 @@
             "image":"nlpbox/corenlp",
             "ports": {"9000/tcp":"9000"},
             "stdin_open":true,
+            "tty":true,
+            "environment":{
+                "TIMEOUT_MILLISECONDS":"100000",
+                "ANNOTATORS":"tokenize,ner"
+            }
+        }
+    },
+    "spacy":{
+        "for_completeness": true,
+        "request":{
+            "url":"http://localhost:8080/ent",
+            "bodyss": "{\"text\":\"$TEXT_DATA$\", \"model\":\"en\"}",
+            "json_body": {
+                "text":"$TEXT_DATA$",
+                "model":"en"
+            }
+        },
+        "docker":{
+            "name":"spacy",
+            "image":"jgontrum/spacyapi:en_v2",
+            "ports":{"80/tcp":"8080"},
+            "stdin_open":true,
             "tty":true
         }
     },
+    
+    
     "flair":{
         "for_completeness":true,
         "request":{
             "method":"GET",
             "url":"http://localhost:5000/",
-            "params":"text=$TEXT_DATA$"
+            "params":"text=$TEXT_DATA$",
+            "_json_params":{
+                "text":"$TEXT_DATA$"
+            },
+            "parse_payload":{
+                "\n\n":"\n"
+            }
         },
         "docker":{
             "name":"flair",
@@ -100,8 +121,8 @@
         "for_completeness": true,
         "request":{
             "url":"http://localhost:5555/ne",
-            "body": "{\"text\":\"$TEXT_DATA$\",\"tagger\":\"ner-fast-with-lowercase\"}",
-            "bodyss": {
+            "_bodys": "{\"text\":\"$TEXT_DATA$\",\"tagger\":\"ner-fast-with-lowercase\"}",
+            "json_body": {
                 "text":"$TEXT_DATA$",
                 "tagger":"ner-fast-with-lowercase"
             }
@@ -124,7 +145,11 @@
         },
         "request":{
             "url":"http://localhost:8000/",
-            "params":"file_name=$TEXT_DATA_0$&lang=$TEXT_DATA_1$"
+            "json_params":{
+                "file_name":"$TEXT_DATA_0$",
+                "lang":"$TEXT_DATA_1$"
+            },
+            "paramss":"file_name=$TEXT_DATA_0$&lang=$TEXT_DATA_1$"
         },
         "docker":{
             "name":"consistency_checker",

@@ -1,3 +1,4 @@
+import math
 from visualisation.VisualisationUtils import load_results, get_gradient_list, get_2_gradients_list
 from pathlib import Path
 from typing import Literal
@@ -65,9 +66,10 @@ def Occurrence(results_path, save_img_path, occurrence_type:Literal["kb","class"
     #     plt.text(i, -3.7, str(v),horizontalalignment="center")
         #plt.text(i, 0.5, str(v),horizontalalignment="center")
     plt.bar(range(len(entities_names_top)), height=entities_amounts_top, color = base_colors)
-    plt.xticks(range(len(entities_names_top)),labels=entities_amounts_top)
+    plt.xticks(range(len(entities_names_top)),labels=entities_amounts_top, rotation="vertical")
     for i, v in enumerate(entities_names_top):
-        plt.text(i, plt.ylim()[1] * 0.1, str(v),horizontalalignment="center", rotation = "vertical", fontsize = 8)
+        entity_name = str(v) if len(str(v)) < 20 else  str(v)[:20] + "..."
+        plt.text(i, plt.ylim()[1] * 0.1, entity_name ,horizontalalignment="center", rotation = "vertical", fontsize = 8)
     plt.title(f"Top {top_n} entities count")
     plt.tight_layout()
 
@@ -88,9 +90,13 @@ def Grammar(results_path, save_img_path):
 
     documents_errors = results["errors_per_document"]
     values = list(documents_errors.values())
-    labels = list(documents_errors.keys())
+    not_too_many_labels = len(documents_errors) <= 20
+
+    labels = [label if not_too_many_labels else i for i,label in enumerate(documents_errors.keys()) ]
+    
     mean = results["errors_mean"]
     
+
     plt.figure()
 
     plt.bar(labels, values, color = "darkcyan")
@@ -98,7 +104,7 @@ def Grammar(results_path, save_img_path):
     plt.axhline(y=mean,linewidth=1, color='red', label=f"Mean Error Count = {mean:0.4f}")
     plt.legend(**top_legend)
 #    plt.annotate(f"{mean}", (len(values)-1, mean+0.1))
-    plt.xlabel("Documents")
+    plt.xlabel("Document" if not_too_many_labels else "Document index")
     plt.ylabel("Error Count")
 
     path = save_img_path / "grammar.png" 
@@ -118,7 +124,11 @@ def Coherence(results_path, save_img_path):
 
     documents_nwd = results["per_document_NWD"]
     values = list(documents_nwd.values())
-    labels = list(documents_nwd.keys())
+    # labels = list(documents_nwd.keys())
+    not_too_many_labels = len(documents_nwd) <= 20
+
+    labels = [label if not_too_many_labels else i for i,label in enumerate(documents_nwd.keys()) ]
+
     micro_NWD = results["micro_NWD"]
     macro_NWD = results["macro_NWD"]
     
@@ -130,7 +140,7 @@ def Coherence(results_path, save_img_path):
     plt.axhline(y=macro_NWD, linewidth=1, color='y', label=f"Macro NWD = {micro_NWD:0.4f}")
     plt.legend(**top_legend)
 #    plt.annotate(f"{mean}", (len(values)-1, mean+0.1))
-    plt.xlabel("Documents")
+    plt.xlabel("Document" if not_too_many_labels else "Document index")
     plt.ylabel("NWD")
     
     path = save_img_path / "coherence.png" 
@@ -185,12 +195,14 @@ def Consistency(results_path, save_img_path):
 
     results = load_results(results_path)
     #histogram of models scores - with line of dataset score? 
-    
+        
+    plt.figure()
     plot_for_averagetype(results,"micro")    
     path = save_img_path / "micro_consistency.png" 
     plt.savefig(path)
     # plt.show()
 
+    plt.figure()
     plot_for_averagetype(results,"macro")
     path = save_img_path / "macro_consistency.png" 
     plt.savefig(path)
@@ -220,6 +232,7 @@ def Completeness(results_path, save_img_path):
     # alpha_step = 1/len(fuzzy_values)
     bar_colors = get_gradient_list("darkcyan", "lightcyan", len(fuzzy_values))
 
+    plt.figure()
     #plt.bar("fuzzy", height=1, color="gray" , alpha=0.2)
     #plt.bar("strict", height=1, color="gray" , alpha=0.2)
     plt.bar("fuzzy", height=fuzzy_values, color=bar_colors)
@@ -244,11 +257,111 @@ def Completeness(results_path, save_img_path):
 
     #one for fuzzy eval and one for strict
 
-def Dispersity(results_path, save_img_path):
-    results_path = Path(results_path) / "context_dispersity.json"
+
+def plot_dispersity(dispersity, title, skip_y_label = True):
+    min_max = dispersity[0]
+    min_avg = dispersity[1]
+    avg_max = dispersity[2]
+
+    max_length = 1
+    min_length = min_max * max_length
+    avg_length = avg_max * max_length
+
+    y_text_offset = plt.ylim()[1] * 0.05
+    color_max = "darkcyan" 
+    color_min = "lightcyan"
+    colors = get_gradient_list(color_min, color_max, 10)
+
+    avg_color_id = math.floor((avg_length - min_length) / (max_length - min_length)*9) if max_length - min_length != 0 else 9
+    color_avg = colors[avg_color_id]
+
+    plt.bar("Max", max_length, color=color_max, label="Max Distance")
+    plt.text("Max", max_length - y_text_offset, f"{max_length:0.4f}", horizontalalignment = "center")
+    plt.bar("Avg", avg_length, color=color_avg, label="Avg Distance")
+    plt.text("Avg", avg_length - y_text_offset, f"{avg_length:0.4f}", horizontalalignment = "center")
+    # plt.text("Avg", avg_bar + y_text_offset/5, f"{avg_max:0.4f}", horizontalalignment = "center")
+    plt.bar("Min", min_length, color=color_min, label="Min Distance")
+    plt.text("Min", min_length - y_text_offset, f"{min_length:0.4f}", horizontalalignment = "center")
+    # plt.gca().set_aspect("equal")
+    plt.grid(axis='y', alpha=0.4)
+    if not skip_y_label:
+        plt.ylabel("Vector distances [relative to Max]" )
+    plt.title(f"{title} = {min_max:0.4f}", fontsize = 10)
+    # plt.legend()
+
+
+def ContextDispersity(results_path, save_img_path):
+    results_path = Path(results_path) / "dispersity_contexts.json"
     if not results_path.exists():
         raise FileNotFoundError
     save_img_path = Path(save_img_path)
     save_img_path.mkdir(exist_ok=True)
     
+    results = load_results(results_path)
+    context_keyword_dispersity = results["context_keyword_dispersity"]
+    context_entities_dispersity = results["context_entities_dispersity"]
+    context_text_dispersity = results["context_text_dispersity"]
 
+    context_keyword_dispersity_angular = results["context_keyword_dispersity_angular"]
+    context_entities_dispersity_angular = results["context_entities_dispersity_angular"]
+    context_text_dispersity_angular = results["context_text_dispersity_angular"]
+
+
+    plt.figure(figsize=[8.4, 4.2])
+    plt.subplot(1,3,1)
+    plot_dispersity(context_keyword_dispersity,f"Keyword Context\ndispersity",skip_y_label=False)
+    plt.subplot(1,3,2)
+    plot_dispersity(context_entities_dispersity,f"Entities Context\ndispersity")
+    plt.subplot(1,3,3)
+    plot_dispersity(context_text_dispersity,f"Text Context\ndispersity")
+    path = save_img_path / "dispersity_ctx_euclidean.png" 
+    plt.savefig(path)
+
+    plt.figure(figsize=[8.4, 4.2])
+    plt.subplot(1,3,1)
+    plot_dispersity(context_keyword_dispersity_angular,f"Keyword Context\nangular dispersity",skip_y_label=False)
+    plt.subplot(1,3,2)
+    plot_dispersity(context_entities_dispersity_angular,f"Entities Context\nangular dispersity")
+    plt.subplot(1,3,3)
+    plot_dispersity(context_text_dispersity_angular,f"Text Context\nangular dispersity")
+    path = save_img_path / "dispersity_ctx_angular.png" 
+    plt.savefig(path)
+
+def AnnotationDispersity(results_path, save_img_path):
+    results_path = Path(results_path) / "dispersity_annotations.json"
+    if not results_path.exists():
+        raise FileNotFoundError
+    save_img_path = Path(save_img_path)
+    save_img_path.mkdir(exist_ok=True)
+    
+    results = load_results(results_path)
+    macro_dispersity_euclidean = results["macro_dispersity_euclidean"]
+    micro_full_euclidean = results["micro_full_euclidean"]
+    micro_unique_euclidean = results["micro_unique_euclidean"]
+
+    macro_dispersity_angular = results["macro_dispersity_angular"]
+    micro_full_angular = results["micro_full_angular"]
+    micro_unique_angular = results["micro_unique_angular"]
+
+
+    plt.figure(figsize=[8.4, 4.2])
+    plt.subplot(1,3,1)
+    plot_dispersity(macro_dispersity_euclidean,f"Macro annotation\ndispersity",skip_y_label=False)
+    plt.subplot(1,3,2)
+    plot_dispersity(micro_full_euclidean,f"Micro annotation\ndispersity")
+    plt.subplot(1,3,3)
+    plot_dispersity(micro_unique_euclidean,f"Micro unique annotation\ndispersity")
+    path = save_img_path / "dispersity_annotation_euclidean.png" 
+    plt.savefig(path)
+    #plt.show()
+
+    plt.figure(figsize=[8.4, 4.2])
+    plt.subplot(1,3,1)
+    plot_dispersity(macro_dispersity_angular,f"Macro annotation\nangular dispersity",skip_y_label=False)
+    plt.subplot(1,3,2)
+    plot_dispersity(micro_full_angular,f"Micro annotation\nangular dispersity")
+    plt.subplot(1,3,3)
+    plot_dispersity(micro_unique_angular,f"Micro unique annotation\nangular dispersity")
+    path = save_img_path / "dispersity_annotation_angular.png" 
+    plt.savefig(path)
+    # plt.show()

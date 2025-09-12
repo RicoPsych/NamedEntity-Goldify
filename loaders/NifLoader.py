@@ -49,13 +49,13 @@ class NifLoader:
         return docs
     
     def LoadDatasetRequest(text, name, kb_prefix = "") -> Dataset:
-        print(f"Loading dataset from request")
+        tqdm.tqdm.write(f"Loading dataset from request")
         docs = NifLoader.LoadDatasetStr(text, kb_prefix)
         dataset = Dataset(None, docs, name)
         return dataset
     
     def LoadDatasetLocal(path, kb_prefix = "") -> Dataset:
-        print(f"Loading dataset: {path}")
+        tqdm.tqdm.write(f"Loading dataset: {path}")
         with open(path,encoding="utf-8") as file:
             raw_text = file.read()
         docs = NifLoader.LoadDatasetStr(raw_text, kb_prefix)

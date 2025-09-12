@@ -10,12 +10,20 @@ import yake
 import tqdm
 
 def get_cosine(vec1,vec2):
-    return numpy.dot(vec1, vec2) / (numpy.linalg.norm(vec1) * numpy.linalg.norm(vec2))
-
+    vec1_len = numpy.linalg.norm(vec1)
+    vec2_len = numpy.linalg.norm(vec2)
+    if vec1_len != 0 and vec2_len != 0:         #normal function
+        dot_prod = numpy.dot(vec1, vec2)
+        return dot_prod / (vec1_len * vec2_len) 
+    if vec1_len == 0 and vec2_len == 0:         #same point, in the centre of plane ~ assumes 0 degree angle
+        return 1        
+    if vec1_len == 0 or vec2_len == 0:          #different points, one in the centre ~ assumes 90 degree angle
+        return 0.5
+    
 def create_empty_cache(vectors_num):
     cache = numpy.empty((vectors_num),dtype='object')
     for row in range(vectors_num):
-        cache[row] = numpy.empty((row + 1), dtype='float32')
+        cache[row] = numpy.empty((row), dtype='float32') #row + 1
         cache[row].fill(numpy.nan)
     return cache
 
@@ -170,20 +178,20 @@ def AnnotationDispersity(dataset):
     else:
         raise "Invalid Input dataset"
     
-    print("Annotation Dispersity")
+    tqdm.tqdm.write("Annotation Dispersity")
 
-    print("Loading SentenceTransformer Model")
-    sbert = SentenceTransformer("all-mpnet-base-v2")
-    print("Loaded SentenceTransformer")
+    tqdm.tqdm.write("Loading SentenceTransformer Model")
+    sbert = SentenceTransformer("all-mpnet-base-v2") #device cuda?
+    tqdm.tqdm.write("Loaded SentenceTransformer")
 
     #Parse Documents
     documents_entities_vectors  = []
     unique_entities = {}
     documents_without_entities = 0
     for document in tqdm.tqdm(documents,desc="Documents"):
-        #skip docs without entities
+        #skip docs without entities 
         if (len(document.entities) == 0):
-            documents_without_entities +=1
+            documents_without_entities +=1 
             continue
         #Entites as vectors
         entities_names = [e.kb_name if e.kb_name != "" else e.surface_form for e in document.entities] #[e.surface_form for e in document.entities]
@@ -197,30 +205,30 @@ def AnnotationDispersity(dataset):
     all_entities_vectors = [vector for document_vectors in documents_entities_vectors for vector in document_vectors]
 
     #Full macro dispersity
-    print("Macro dispersity")
+    tqdm.tqdm.write("Macro dispersity")
     macro_dispersity = 0
     macro_dispersity_angular = 0
     for document_vectors in tqdm.tqdm(documents_entities_vectors, desc="Documents"):
         macro_dispersity += vector_dispersity_euclidean(document_vectors, disable_logging=True)
         macro_dispersity_angular += vector_dispersity_angular(document_vectors, disable_logging=True)
     
-    #full macro dispersity
+    #full macro dispersity, the empty documents are not present in those lists
     macro_dispersity /= len(documents_entities_vectors)
     macro_dispersity_angular /= len(documents_entities_vectors)
 
     #Full micro dispersities
-    print("Micro dispersity")
+    tqdm.tqdm.write("Micro dispersity")
     mean_entities = vector_dispersity_euclidean(all_entities_vectors)
     mean_entities_angular = vector_dispersity_angular(all_entities_vectors)
     all_entities_count = len(all_entities_vectors)
 
     #Unique micro dispersities
-    print("Micro unique dispersity")
+    tqdm.tqdm.write("Micro unique dispersity")
     mean_unique_entities = vector_dispersity_euclidean(list(unique_entities.values()))
     mean_unique_entities_angular = vector_dispersity_angular(list(unique_entities.values()))
     unique_entities_count = len(unique_entities)
 
-    print("Done")
+    tqdm.tqdm.write("Done")
 
     return {
         "macro_dispersity_euclidean":macro_dispersity.tolist(),
@@ -244,12 +252,12 @@ def ContextDispersity(dataset, results_path = None):
     else:
         raise "Invalid Input dataset"
     
-    print("Context Dispersity")
+    tqdm.tqdm.write("Context Dispersity")
 
     # Load https://huggingface.co/sentence-transformers/all-mpnet-base-v2
-    print("Loading SentenceTransformer Model")
+    tqdm.tqdm.write("Loading SentenceTransformer Model")
     sbert = SentenceTransformer("all-mpnet-base-v2")
-    print("Loaded SentenceTransformer")
+    tqdm.tqdm.write("Loaded SentenceTransformer")
 
     #ngram 3, top 10 keywords
     keyword_extractor = yake.KeywordExtractor(n=3, top=10)
@@ -290,13 +298,13 @@ def ContextDispersity(dataset, results_path = None):
 
         context_vectors_similarities.append({"kw_pt_similarity":kw_pt_similarity,"kw_en_similarity":kw_en_similarity,"pt_en_similarity":pt_en_similarity})
 
-    print("Keywords ctx vectors")
+    tqdm.tqdm.write("Keywords ctx vectors")
     mean_keywords = vector_dispersity_euclidean(keywords_contexts_vectors)
     mean_keywords_angular = vector_dispersity_angular(keywords_contexts_vectors)
-    print("Entities ctx vectors")
+    tqdm.tqdm.write("Entities ctx vectors")
     mean_entities = vector_dispersity_euclidean(entities_contexts_vectors)
     mean_entities_angular = vector_dispersity_angular(entities_contexts_vectors)
-    print("Plain text ctx vectors")
+    tqdm.tqdm.write("Plain text ctx vectors")
     mean_texts = vector_dispersity_euclidean(plaintext_contexts_vectors) 
     mean_texts_angular = vector_dispersity_angular(plaintext_contexts_vectors) 
 
@@ -310,7 +318,7 @@ def ContextDispersity(dataset, results_path = None):
     mean_similarity["kw_en_similarity"] /= len(context_vectors_similarities)
     mean_similarity["pt_en_similarity"] /= len(context_vectors_similarities)
 
-    print("Done")
+    tqdm.tqdm.write("Done")
     return {
         "context_keyword_dispersity":mean_keywords.tolist(),
         "context_entities_dispersity":mean_entities.tolist(),

@@ -35,7 +35,7 @@ def retry_get(url, params = None, data = None, json=None, headers = None, tries 
             return rq
         except requests.ConnectionError:
             tries -= 1
-            print(f"Connection Error [{url}]. Next try in {sleep_time}s [remaining tries {"infinite" if infinite_retry else tries}]")        
+            tqdm.write(f"Connection Error [{url}]. Next try in {sleep_time}s [remaining tries {"infinite" if infinite_retry else tries}]")        
             time.sleep(sleep_time)
             if incremental:
                 sleep_time += sleep_time
@@ -52,7 +52,7 @@ def retry_post(url, params = None, data = None, json=None, headers = None, tries
             return rq
         except requests.ConnectionError:
             tries -= 1
-            print(f"Connection Error [{url}]. Next try in {sleep_time}s [remaining tries {"infinite" if infinite_retry else tries}]")        
+            tqdm.write(f"Connection Error [{url}]. Next try in {sleep_time}s [remaining tries {"infinite" if infinite_retry else tries}]")        
             time.sleep(sleep_time)
             if incremental:
                 sleep_time += sleep_time
@@ -63,13 +63,13 @@ def download_untar_file(url, target_path):
     target_path = target_path.absolute()
     untar_path = target_path.parent.absolute()
     download_file(url,target_path)
-    print(f"Extracting {target_path} to {untar_path}.")
+    tqdm.write(f"Extracting {target_path} to {untar_path}.")
     file = tarfile.open(target_path)
     file.extractall(untar_path)
 
 def download_file(url, target_path):
     target_path = target_path.absolute()
-    print(f"Downloading {url} to {target_path}.")
+    tqdm.write(f"Downloading {url} to {target_path}.")
     with requests.get(url, stream=True) as rq:
         total_size = int(rq.headers.get('content-length'))
         with tqdm(total=total_size, unit="B", unit_scale=True, unit_divisor=1024) as progress_bar:
@@ -78,11 +78,20 @@ def download_file(url, target_path):
                 for chunk in rq.iter_content(chunk_size=chunk_size):
                     chunk_size = file.write(chunk)
                     progress_bar.update(chunk_size)
-    print(f"Downloaded {target_path}")
+    tqdm.write(f"Downloaded {target_path}")
 
 def get_proxy_list():
     response = requests.get("https://api.proxyscrape.com/v4/free-proxy-list/get?request=display_proxies&proxy_format=protocolipport&format=json&anonymity=Anonymous&timeout=20000").json()
     proxies = [{"http":proxy["proxy"],"https":proxy["proxy"]} for proxy in response['proxies']]
     return proxies
+
+def recursive_replace(object_dict, value_to_replace, value):
+    for key in object_dict:
+        match object_dict[key]:
+            case str():
+                object_dict[key] = object_dict[key].replace(value_to_replace, value)
+            case dict():
+                object_dict[key] = recursive_replace(object_dict[key],value_to_replace,value)
+    return object_dict
 
 #get_proxy_list()

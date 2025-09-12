@@ -3,6 +3,8 @@ dockerize/containers_data/rel/ed-wiki-2019
 dockerize/containers_data/rel/generic
 dockerize/containers_data/rel/wiki_2019
 
+data/
+
 dockerize/containers_data/spacy/docbins
 dockerize/containers_data/spacy/models
 dockerize/containers_data/spacy/datasets

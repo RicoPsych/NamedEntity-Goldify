@@ -12,3 +12,10 @@ POST http://localhost:5555/ne
 ### 
 GET http://localhost:5555/docs
 
+###
+
+POST http://localhost:5555/ne 
+
+{"text": "Painlev\u00e9 s' attaqua , avec Charles \u00c9mile Picard , \u00e0 celles du second ordre . ", "tagger": "ner-fast-with-lowercase"}'
+
+###{"text": "Painlev\\u00e9 s' attaqua , avec Charles \\u00c9mile Picard , \\u00e0 celles du second ordre . ", "tagger": "ner-fast-with-lowercase"}

@@ -22,7 +22,7 @@ def GrammarCorrectness(dataset, language = "auto"):
     name = 'languageTool'
     manager.start_container(config_name=name)
 
-    print("Grammar Correctness")
+    tqdm.tqdm.write("Grammar Correctness")
 
     errors = {}
     errors_sum = 0
@@ -47,7 +47,7 @@ def GrammarCorrectness(dataset, language = "auto"):
 
     errors_mean = errors_sum/len(documents)
 
-    print("Done")
+    tqdm.tqdm.write("Done")
     return {
         "errors_sum":errors_sum,
         "errors_mean":errors_mean,

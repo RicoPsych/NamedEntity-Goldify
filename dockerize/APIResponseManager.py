@@ -1,10 +1,12 @@
 
 import json
 from pathlib import Path
+
+import tqdm
 from Utilities import Singleton
 from loaders.NifLoader import NifLoader
 
-class APIResponseManager(metaclass=Singleton):
+class NERSystemsResponseManager(metaclass=Singleton):
     available_request_types: list[str]
     global_config: dict
     
@@ -14,7 +16,7 @@ class APIResponseManager(metaclass=Singleton):
             config_str = file.read().replace("$PWD$", str(Path.cwd()).replace("\\","\\\\"))
             self.global_config = json.loads(config_str)
             self.available_containers = list(self.global_config.keys())
-            print(f"Loaded container config form: {config_path}")
+            tqdm.tqdm.write(f"Loaded container config form: {config_path}")
 
     def parse_response(self, response, config_name, document_text):
         match config_name:
@@ -62,7 +64,7 @@ def parse_flair_response(response, document_text):
 def parse_dbpedia_response(response):
     response_json = response.json()
     response_json["@text"] # text
-    response_entities = response_json["Resources"] 
+    response_entities = response_json.get("Resources",[]) 
     entities = []
     for entity in response_entities:
         #uri = entity["@URI"]

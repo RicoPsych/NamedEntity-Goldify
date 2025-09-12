@@ -9,7 +9,7 @@ from pathlib import Path
 
 class WikinerGoldLoader:
     def LoadDatasetLocal(path):
-        print(f"Loading dataset: {path}")
+        tqdm.tqdm.write(f"Loading dataset: {path}")
 
         documents = []
         full_path = Path(path)
@@ -23,7 +23,7 @@ class WikinerGoldLoader:
         return dataset
     
     def LoadDatasetSentencesLocal(path):
-        print(f"Loading dataset: {path}")
+        tqdm.tqdm.write(f"Loading dataset: {path}")
 
         documents = []
         full_path = Path(path)

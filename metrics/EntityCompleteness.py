@@ -1,26 +1,11 @@
+import time
 from tqdm import tqdm
-from dockerize.APIResponseManager import APIResponseManager
+from dockerize.APIResponseManager import NERSystemsResponseManager
 from dockerize.DockerManager import DockerManager
 from models.Dataset import Dataset
 from models.Document import Document
 from models.Entity import Entity
-
-# class entity_record:
-#     systems: set
-#     def __init__(self):
-#         self.systems=set()
-
-#     def __call__(self, *args, **kwds):
-#         return self.count()
-
-#     def count(self):
-#         return len(self.systems)
-
-#     def union(self, other):
-#         self.systems = self.systems.union(other.systems)
-
-#     def __add__(self, element):
-#         pass
+import json
 
 def spans_intersects(self: tuple[int,int], other: tuple[int,int]):
         exlcusive = (other[0] > self[1] and other[1] > self[1]) or (other[1] < self[0] and other[0] < self[0]  )
@@ -103,8 +88,10 @@ def count_completeness(new_entities_docs, ners_count, gold_entity_count, per_doc
     dataset_completeness_for_thresholds = {}    
     for threshold in dataset_thresholds: 
         threshold_count = dataset_thresholds[threshold]
-        percent_threshold = threshold/ners_count
-        dataset_completeness_for_thresholds[percent_threshold] = gold_entity_count / (threshold_count + gold_entity_count) # gold entities / gold and new entities
+        percent_threshold = threshold/ners_count                    
+        #gold entities / gold and new entities                
+        dataset_completeness = gold_entity_count / (threshold_count + gold_entity_count) if threshold_count != 0 else 1 #if no new entities -> completeness is 1
+        dataset_completeness_for_thresholds[percent_threshold] = dataset_completeness 
     
     per_doc_completeness_for_thresholds = [] 
     for doc_i in range(len(per_doc_thresholds)):
@@ -114,8 +101,10 @@ def count_completeness(new_entities_docs, ners_count, gold_entity_count, per_doc
         per_doc_completeness_for_thresholds.append(doc_completeness_for_thresholds)
         for threshold in doc_thresholds: 
             threshold_count = doc_thresholds[threshold]
-            percent_threshold = threshold/ners_count
-            doc_completeness_for_thresholds[percent_threshold] = doc_gold_entity_count / (threshold_count + doc_gold_entity_count) # gold entities / gold and new entities
+            percent_threshold = threshold/ners_count        
+            #gold entities / gold and new entities  
+            doc_completeness = doc_gold_entity_count / (threshold_count + doc_gold_entity_count) if threshold_count != 0 else 1 #if no new entities -> completeness is 1               
+            doc_completeness_for_thresholds[percent_threshold] = doc_completeness
     
     result = {
         "completeness": dataset_completeness_for_thresholds,
@@ -134,8 +123,9 @@ def EntityCompleteness(dataset):
         raise "Invalid Input dataset"
 
     manager = DockerManager()
-    response_manager = APIResponseManager()
+    response_manager = NERSystemsResponseManager()
     contaiNERs_configs = manager.get_available_containers(completeness=True)
+    contaiNERs_configs = contaiNERs_configs[4:] +  contaiNERs_configs[:4]#+ [contaiNERs_configs[2]]
     ner_outputs_documents = [] 
     for document in documents:
         ner_outputs_documents.append({})
@@ -145,10 +135,22 @@ def EntityCompleteness(dataset):
 
         document_index = 0
         for document in tqdm(documents, desc="documents"): 
-            response = manager.send_request_to_container(contaiNER_config_name, document.plain_text)
-            if response.status_code != 200:
-                print(f"An error occured with request for {contaiNER_config_name}\n text = {document.plain_text}")
-                raise ConnectionError
+            tries = 3
+            while tries > 0:
+                try:
+                    response = manager.send_request_to_container(contaiNER_config_name, document.plain_text)
+                    if response.status_code != 200:
+                        tqdm.write(f"An error occured with response from {contaiNER_config_name}\n[Error Code: {response.status_code}][Request url: {response.request.url}]\ndocument name = {document.name}")
+                        raise RuntimeError
+                    break
+                except RuntimeError:
+                    tries-=1
+                    if tries == 0:
+                        raise ConnectionError #could not get response
+                    time.sleep(1)
+                    tqdm.write(f"Retrying the request for {document.name} [{tries} tries left] ")
+
+
             document_entities = response_manager.parse_response(response, contaiNER_config_name, document.plain_text)
             document_entities = sorted(document_entities,key= lambda a : a[0]) #sort entities (order of entities may not be kept)
             document_entities = remove_nested_entities(document_entities) # removes nested entities in each system output
@@ -205,7 +207,8 @@ def EntityCompleteness(dataset):
     strict_completeness = count_completeness(strict_new_entities_docs, ners_count, gold_entity_count, per_doc_gold_entity_count)    
     fuzzy_completeness = count_completeness(fuzzy_new_entities_docs, ners_count, gold_entity_count, per_doc_gold_entity_count)    
 
- 
+    tqdm.write("Done")
+
     fuzzy_new_entities_docs =  [dict([(' '.join(map(str,key)), [count_dict[key][0], list(count_dict[key][1])]) for key in count_dict]) for count_dict in fuzzy_new_entities_docs]
     strict_new_entities_docs = [dict([(' '.join(map(str,key)), [count_dict[key][0], list(count_dict[key][1])]) for key in count_dict]) for count_dict in strict_new_entities_docs] 
 

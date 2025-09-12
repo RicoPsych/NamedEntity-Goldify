@@ -26,13 +26,3 @@ def get_gradient_list(col1, col2, n):
 def get_2_gradients_list(col1, col2, col3, n):
     colors = get_gradient_list(col1, col2, n = int(n/2)+1)[:-1] + get_gradient_list(col2, col3, n=int(n/2) + n%2)
     return colors
-
-def Histogram(dict):
-    plt.hist
-    pass
-
-
-def Piechart(dict:dict):
-    plt.pie(list(dict.values()),labels=list(dict.keys()))
-    
-    pass

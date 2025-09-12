@@ -26,7 +26,7 @@ def EntityOccurrence(dataset, aggregate_field: Literal["class","kb"]):
     else:
         raise "Invalid Input dataset"
 
-    print("Entity Occurrence")
+    tqdm.tqdm.write("Entity Occurrence")
 
     #Count entities
     _entities = {}
@@ -64,15 +64,17 @@ def EntityOccurrence(dataset, aggregate_field: Literal["class","kb"]):
         close_entities[entity] = [max_ratio, entities_distances[entity][max_ratio]]
 
     #sorted_close_entities = {k: v for k, v in sorted(close_entities.items(), key=lambda item: item[1][0], reverse=True)}
+    unique_count = len(sorted_entities_count.keys())
 
     result = {
         "absolute":sorted_entities_count,
         "relative":sorted_entities_relative_count,
         "similar_entities":close_entities,
         "entities_count":entities_count,
+        "unique_count":unique_count
         }
 
-    print("Done")
+    tqdm.tqdm.write("Done")
 
     return result
 
