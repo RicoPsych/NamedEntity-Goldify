@@ -129,7 +129,7 @@ def EntityCompleteness(dataset):
     ner_outputs_documents = [] 
     for document in documents:
         ner_outputs_documents.append({})
-    for contaiNER_config_name in tqdm(contaiNERs_configs, desc="ner systems"):
+    for contaiNER_config_name in tqdm(contaiNERs_configs, desc="Systems"):
         #starts docker container
         manager.start_container(contaiNER_config_name)
 
@@ -138,10 +138,11 @@ def EntityCompleteness(dataset):
             tries = 3
             while tries > 0:
                 try:
-                    response = manager.send_request_to_container(contaiNER_config_name, document.plain_text)
+                    response = manager.send_request_to_container(contaiNER_config_name, document.plain_text) 
                     if response.status_code != 200:
                         tqdm.write(f"An error occured with response from {contaiNER_config_name}\n[Error Code: {response.status_code}][Request url: {response.request.url}]\ndocument name = {document.name}")
                         raise RuntimeError
+                    document_entities = response_manager.parse_response(response, contaiNER_config_name, document.plain_text) #may raise value error?
                     break
                 except RuntimeError:
                     tries-=1
@@ -149,9 +150,14 @@ def EntityCompleteness(dataset):
                         raise ConnectionError #could not get response
                     time.sleep(1)
                     tqdm.write(f"Retrying the request for {document.name} [{tries} tries left] ")
+                except ValueError:
+                    tries-=1
+                    if tries == 0:
+                        raise ConnectionError #could not parse response
+                    time.sleep(1)
+                    tqdm.write(f"Retrying the request for {document.name} [{tries} tries left] ")
 
 
-            document_entities = response_manager.parse_response(response, contaiNER_config_name, document.plain_text)
             document_entities = sorted(document_entities,key= lambda a : a[0]) #sort entities (order of entities may not be kept)
             document_entities = remove_nested_entities(document_entities) # removes nested entities in each system output
             ner_outputs_documents[document_index][contaiNER_config_name] = document_entities

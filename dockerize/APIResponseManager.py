@@ -19,26 +19,31 @@ class NERSystemsResponseManager(metaclass=Singleton):
             tqdm.tqdm.write(f"Loaded container config form: {config_path}")
 
     def parse_response(self, response, config_name, document_text):
-        match config_name:
-            case "spacy":
-                entities = parse_spacy_response(response)
-                return entities
+        try: #try parse
+            match config_name: #try raise?
+                case "spacy":
+                    entities = parse_spacy_response(response)
+                    return entities
 
-            case "rel":
-                entities = parse_rel_response(response)
-                return entities
+                case "rel":
+                    entities = parse_rel_response(response)
+                    return entities
 
-            case "stanford_ner":
-                entities = parse_stanford_ner_response(response)
-                return entities
+                case "stanford_ner":
+                    entities = parse_stanford_ner_response(response)
+                    return entities
 
-            case "dbpedia_spotlight":
-                entities = parse_dbpedia_response(response)
-                return entities
-            
-            case "flair":
-                entities = parse_flair_response(response, document_text)
-                return entities
+                case "dbpedia_spotlight":
+                    entities = parse_dbpedia_response(response)
+                    return entities
+                
+                case "flair":
+                    entities = parse_flair_response(response, document_text)
+                    return entities
+        except:
+            #could not parse
+            tqdm.tqdm.write(f"Could not parse response for {config_name}")
+            raise ValueError
 
 #document text is used to fix the indexing problem
 #caused by the flair spliting the response into sentences 
@@ -75,7 +80,12 @@ def parse_dbpedia_response(response):
     return entities
 
 def parse_rel_response(response):
-    entities_json = response.json()
+    try:
+        entities_json = response.json() #try raise?
+    except:
+        #Could not parse rel response
+        raise ValueError
+    
     entities = []
     for entity in entities_json:
         #ner = entity[6]

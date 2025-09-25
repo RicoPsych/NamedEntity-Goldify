@@ -43,7 +43,8 @@ class ElGoldLoader:
 
                 entity = Entity(surface_form,class_label,kb_link,kb_name,plain_start,plain_end)
                 entities.append(entity)
-            #print(entity)
+            else:
+                tqdm.tqdm.write(f"Error with entity {entity_as_list[0]}")
         
         #token_text = plain_text.split(" ")
         

@@ -133,11 +133,12 @@ def Coherence(results_path, save_img_path):
     macro_NWD = results["macro_NWD"]
     
     plt.figure()
+    plt.ylim(top=1.05)
 
     plt.bar(labels, values, color = "darkcyan")
     plt.xticks(rotation="vertical")
-    plt.axhline(y=micro_NWD, linewidth=1, color='r', label=f"Micro NWD = {macro_NWD:0.4f}")
-    plt.axhline(y=macro_NWD, linewidth=1, color='y', label=f"Macro NWD = {micro_NWD:0.4f}")
+    plt.axhline(y=micro_NWD, linewidth=1, color='r', label=f"Micro NWD = {micro_NWD:0.4f}")
+    plt.axhline(y=macro_NWD, linewidth=1, color='y', label=f"Macro NWD = {macro_NWD:0.4f}")
     plt.legend(**top_legend)
 #    plt.annotate(f"{mean}", (len(values)-1, mean+0.1))
     plt.xlabel("Document" if not_too_many_labels else "Document index")
@@ -178,12 +179,15 @@ def Consistency(results_path, save_img_path):
 
         plt.figure(figsize=[6.4, 6.4])
         plt.subplot(10, 1, (1,2))
+        plt.ylim(top=1.05)
         plot_consistency(f1_per_model, f1, f1_stdev, f"{average_type} f1")
         # plt.figure()
         plt.subplot(10, 1, (5,6))
+        plt.ylim(top=1.05)
         plot_consistency(precision_per_model, precision, precision_stdev, f"{average_type} precision", color="seagreen")
         # plt.figure()
         plt.subplot(10, 1, (9,10))
+        plt.ylim(top=1.05)
         plot_consistency(recall_per_model, recall, recall_stdev, f"{average_type} recall", color="steelblue")
 
     # std deviation is the metric 
@@ -233,6 +237,7 @@ def Completeness(results_path, save_img_path):
     bar_colors = get_gradient_list("darkcyan", "lightcyan", len(fuzzy_values))
 
     plt.figure()
+    plt.ylim(top=1.05)
     #plt.bar("fuzzy", height=1, color="gray" , alpha=0.2)
     #plt.bar("strict", height=1, color="gray" , alpha=0.2)
     plt.bar("fuzzy", height=fuzzy_values, color=bar_colors)

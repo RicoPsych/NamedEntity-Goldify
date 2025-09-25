@@ -38,3 +38,8 @@ class VisualisationPipeline:
 
         for metric in self.pipeline:
             self.match_metric(metric,results_path)  
+
+
+    def visualise_datasets(self, dataset_results_paths):
+        for dataset_results_path in dataset_results_paths:
+            self.visualise_dataset(dataset_results_path)

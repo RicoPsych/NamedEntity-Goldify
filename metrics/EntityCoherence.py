@@ -136,10 +136,10 @@ def EntityCoherence(dataset, user_agent = None, use_common_cache = True, lang:Li
     tqdm.tqdm.write("Entity Coherence:")
     skipped_documents = 0
     for document in tqdm.tqdm(documents, desc="Documents"):
-        entities_count += len(document.entities)
 
         doc_sum_nwd = 0
         if len(document.entities) > 1 : #Skipping documents when not enough entities
+            entities_count += len(document.entities)
             for i in tqdm.tqdm(range(len(document.entities)),desc="Entities"):
                 prev_i = i-1 if i - 1 >= 0 else i + 1
                 next_i = i+1 if i + 1 < len(document.entities) else i - 1
@@ -157,7 +157,9 @@ def EntityCoherence(dataset, user_agent = None, use_common_cache = True, lang:Li
             dataset_NWD_micro += doc_sum_nwd #entities sum
             dataset_NWD_macro += doc_nwd #document nwd
             documentsNWD[document.name] = doc_nwd
-     
+        else:
+            skipped_documents+=1
+            tqdm.tqdm.write(f"Skipped document {document.name} - not enough entities.")
     tqdm.tqdm.write("Done")
 
     dataset_NWD_micro /= entities_count

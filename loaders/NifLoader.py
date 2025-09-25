@@ -1,13 +1,15 @@
 #from pynif import NIFCollection
 from pathlib import Path
+import urllib.parse
 from nifwrapper import *
 from models.Entity import Entity
 from models.Document import Document
 from models.Dataset import Dataset
 import tqdm
+import re
 
 class NifLoader:
-    def LoadDatasetStr(raw_text, kb_prefix = ""):
+    def LoadDatasetStr(raw_text, kb_prefix = "", kb_prefix_regex = ""):
         parser = NIFParser()
         wrp_gold = parser.parser_turtle(raw_text)
         docs = []
@@ -28,7 +30,14 @@ class NifLoader:
                     
                     nif_classes = annotation.getAttribute("itsrdf:taClassRef")
                     nif_classes_dict = {}
-                    kb_name = kb_link.removeprefix(kb_prefix).replace("_"," ")
+    
+                    if kb_prefix_regex != "":
+                        kb_name = re.sub(kb_prefix_regex,"",kb_link).replace("_"," ")
+                    else:
+                        kb_name = kb_link.removeprefix(kb_prefix).replace("_"," ") 
+                         
+                    # if statement for not encoded characters?
+                    kb_name = urllib.parse.unquote(kb_name)
 
                     #Get nif classes in dict
                     if nif_classes is not None:
@@ -48,17 +57,17 @@ class NifLoader:
             index+=1
         return docs
     
-    def LoadDatasetRequest(text, name, kb_prefix = "") -> Dataset:
+    def LoadDatasetRequest(text, name, kb_prefix = "", kb_prefix_regex = "") -> Dataset:
         tqdm.tqdm.write(f"Loading dataset from request")
-        docs = NifLoader.LoadDatasetStr(text, kb_prefix)
+        docs = NifLoader.LoadDatasetStr(text, kb_prefix, kb_prefix_regex)
         dataset = Dataset(None, docs, name)
         return dataset
     
-    def LoadDatasetLocal(path, kb_prefix = "") -> Dataset:
+    def LoadDatasetLocal(path, kb_prefix = "", kb_prefix_regex = "") -> Dataset:
         tqdm.tqdm.write(f"Loading dataset: {path}")
         with open(path,encoding="utf-8") as file:
             raw_text = file.read()
-        docs = NifLoader.LoadDatasetStr(raw_text, kb_prefix)
+        docs = NifLoader.LoadDatasetStr(raw_text, kb_prefix, kb_prefix_regex)
         name = Path(path).stem
         dataset = Dataset(path, docs, name)
         return dataset
