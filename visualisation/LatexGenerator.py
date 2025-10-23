@@ -6,7 +6,7 @@ from visualisation.VisualisationUtils import load_results
 def latex_bold(str):
     return r"\textbf{" + f"{str}" + "}"
 
-def GenerateLatexComparisonTable(results_paths:list[Path], save_table_path):
+def GenerateLatexComparisonTable(results_paths:list[Path], col_size = 1.5):
     
     table_columns_names = ["Metric Name"]
     dataset_names = []
@@ -22,8 +22,14 @@ def GenerateLatexComparisonTable(results_paths:list[Path], save_table_path):
     COMPLETENESS = "Completeness"
     CONTEXTDISP = "Context Dispersity"
     ANNOTDISP = "Annotation Dispersity"
+    OCCURRENCE = "Occurrence"
+    OCCURRENCE_KB = "OccurrenceKB"
+    OCCURRENCE_CLASS = "OccurrenceClass"
+
 
     metric_file_names = {
+        OCCURRENCE_CLASS:"class_occurrence.json",
+        OCCURRENCE_KB:"kb_occurrence.json",
         GRAMMAR:"grammar_correctness.json",
         COHERENCE:"entity_coherence.json",
         CONSISTENCY:"entity_consistency.json",
@@ -46,6 +52,39 @@ def GenerateLatexComparisonTable(results_paths:list[Path], save_table_path):
             results[metric] = results.get(metric,{})
             results[metric][dataset_name] = load_results(ds_results_path)
         
+    occurrence_class_res = results.get(OCCURRENCE_CLASS, None)
+    if occurrence_class_res is not None:
+        table_rows[OCCURRENCE] = table_rows.get(OCCURRENCE,{})
+
+        unique_temp = []
+        all_temp = []
+        for dataset_name in dataset_names:
+            unique_temp.append(occurrence_class_res[dataset_name]["unique_count"])
+            all_temp.append(occurrence_class_res[dataset_name]["entities_count"])
+
+        def max_format(val_list):
+            return [f"{v}" if v != max(val_list) else latex_bold(f"{v}") for v in val_list]
+
+        table_rows[OCCURRENCE]["All entities"] = max_format(all_temp)
+        table_rows[OCCURRENCE]["Unique classes"] = max_format(unique_temp)
+
+    occurrence_kb_res = results.get(OCCURRENCE_KB, None)
+    if occurrence_kb_res is not None:
+        table_rows[OCCURRENCE] = table_rows.get(OCCURRENCE,{})
+
+        unique_temp = []
+        all_temp = []
+        for dataset_name in dataset_names:
+            unique_temp.append(occurrence_kb_res[dataset_name]["unique_count"])
+            all_temp.append(occurrence_kb_res[dataset_name]["entities_count"])
+
+        def max_format(val_list):
+            return [f"{v}" if v != max(val_list) else latex_bold(f"{v}") for v in val_list]
+
+
+        table_rows[OCCURRENCE]["All entities"] = max_format(all_temp)
+        table_rows[OCCURRENCE]["Unique entities"] = max_format(unique_temp)
+
     grammar_res = results.get(GRAMMAR,None)
     if grammar_res is not None:
         table_rows[GRAMMAR] = {}
@@ -201,12 +240,11 @@ def GenerateLatexComparisonTable(results_paths:list[Path], save_table_path):
         table_rows[ANNOTDISP]["Unique angular"] = max_format(unique_ang)
         
 
-
-
+    col_declaration = r"p{"+ str(col_size) +r"cm}|"
 
     #Render Table
     columns_amount = len(dataset_names)
-    table_result_str = r"\begin{tabular}{|c|c|"+ r"p{1.5cm}|"*columns_amount + "}" + "\n" + r"\hline" + "\n"
+    table_result_str = r"\begin{tabular}{|c|c|"+ col_declaration*columns_amount + "}" + "\n" + r"\hline" + "\n"
     headers = r"\multicolumn{2}{|c|}{\multirow{2}{*}{Metric Name}} & \multicolumn{" + str(columns_amount) + r"}{|c|}{Datasets} \\"+ "\n"  
     headers+= r"\cline{3-" + str(2+columns_amount) + "}" + "\n"
     headers+= r"\multicolumn{2}{|c|}{} " #cells under the metric name header
