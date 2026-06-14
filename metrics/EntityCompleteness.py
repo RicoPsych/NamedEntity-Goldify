@@ -115,13 +115,13 @@ def count_completeness(new_entities_docs, ners_count, gold_entity_count, per_doc
     per_doc_thresholds = []
     dataset_thresholds = defaultdict(int)
     #init dataset thresholds dict with 0s
-    # for threshold in range(1, ners_count+1):
-    #     dataset_thresholds[threshold] = 0
+    for threshold in range(1, ners_count+1):
+        dataset_thresholds[threshold] = 0
     for doc_entities in new_entities_docs:
         #init document thresholds dict with 0s
         document_thresholds = defaultdict(int)#{}
-        # for threshold in range(1, ners_count+1):
-        #     document_thresholds[threshold] = 0
+        for threshold in range(1, ners_count+1):
+            document_thresholds[threshold] = 0
         per_doc_thresholds.append(document_thresholds)
         for entity_span in doc_entities:
             #add higher thresholds counts to lower thresholds counts (if 3 ners agree so do 2) 

@@ -39,7 +39,7 @@ elgold_raw = ElGoldLoader.LoadDatasetLocal(datasets_dir+r"\elgold\elgold-annotat
 elgold_team = ElGoldLoader.LoadDatasetLocal(datasets_dir+r"\elgold\elgold-verified-by-authors")
 elgold_authors = ElGoldLoader.LoadDatasetLocal(datasets_dir+r"\elgold\elgold-verified-by-verification-team")
 
-elgold_datasets = [ elgold ,elgold_raw ,elgold_team ,elgold_authors ]
+elgold_datasets = [ elgold, elgold_authors, elgold_team, elgold_raw]
 elgold_result_path = Path("./results/elgold")
 for dataset in elgold_datasets:
     entity_completeness_re = RecomputeCompleteness(dataset, elgold_result_path)
@@ -48,7 +48,7 @@ for dataset in elgold_datasets:
 
     pass
 
-elgold_table = GenerateLatexComparisonTable([elgold_result_path / dataset.name for dataset in elgold_datasets])
+elgold_table = GenerateLatexComparisonTable([elgold_result_path / dataset.name for dataset in elgold_datasets],metric_file_names=metric_file_names)
 SaveTable(elgold_table, elgold_result_path , "elgold_table")
 
 #### WIKINER
@@ -56,7 +56,7 @@ SaveTable(elgold_table, elgold_result_path , "elgold_table")
 dataset_wikiner_fr = WikinerLoader.LoadDatasetSentencesLocal(datasets_dir+r"\wikiner-fr-pre-gold\wikiner-fr.conll")
 dataset_wikiner_gold = WikinerGoldLoader.LoadDatasetSentencesLocal(datasets_dir+r"\wikiner-fr-gold\wikiner-fr-gold.conll")
 
-wikiner_datasets = [dataset_wikiner_fr, dataset_wikiner_gold]
+wikiner_datasets = [dataset_wikiner_gold, dataset_wikiner_fr]
 wikiner_result_path = Path("./results")
 for dataset in wikiner_datasets:
     entity_completeness_re = RecomputeCompleteness(dataset, wikiner_result_path)
@@ -65,7 +65,7 @@ for dataset in wikiner_datasets:
 
     pass
         
-wikiner_table = GenerateLatexComparisonTable([wikiner_result_path / dataset.name for dataset in wikiner_datasets])
+wikiner_table = GenerateLatexComparisonTable([wikiner_result_path / dataset.name for dataset in wikiner_datasets],metric_file_names=metric_file_names)
 SaveTable(wikiner_table, wikiner_result_path , "wikiner_table")
 
 
@@ -97,10 +97,10 @@ voxel_datasets_gold_relaxed_strict = [dataset_vox_gold, dataset_voxr_en ,dataset
 voxel_datasets_relaxed_lang = [dataset_voxr_en ,dataset_voxr_de ,dataset_voxr_es ,dataset_voxr_fr ]
 voxel_datasets_strict_lang =  [dataset_voxs_en ,dataset_voxs_de ,dataset_voxs_es ,dataset_voxs_fr ]
 
-SaveTable(GenerateLatexComparisonTable([voxel_result_path / dataset.name for dataset in voxel_datasets_gold_relaxed_strict]), voxel_result_path , "voxel_gold_relaxed_strict_table")
+SaveTable(GenerateLatexComparisonTable([voxel_result_path / dataset.name for dataset in voxel_datasets_gold_relaxed_strict],metric_file_names=metric_file_names), voxel_result_path , "voxel_gold_relaxed_strict_table")
 
-SaveTable(GenerateLatexComparisonTable([voxel_result_path / dataset.name for dataset in voxel_datasets_relaxed_lang]), voxel_result_path , "voxel_relaxed_lang_table")
-SaveTable(GenerateLatexComparisonTable([voxel_result_path / dataset.name for dataset in voxel_datasets_strict_lang]), voxel_result_path , "voxel_strict_lang_table")
+SaveTable(GenerateLatexComparisonTable([voxel_result_path / dataset.name for dataset in voxel_datasets_relaxed_lang],metric_file_names=metric_file_names), voxel_result_path , "voxel_relaxed_lang_table")
+SaveTable(GenerateLatexComparisonTable([voxel_result_path / dataset.name for dataset in voxel_datasets_strict_lang],metric_file_names=metric_file_names), voxel_result_path , "voxel_strict_lang_table")
 
 
 
