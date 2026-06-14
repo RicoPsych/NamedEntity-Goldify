@@ -110,65 +110,6 @@ def integrate_nested_entities(list_of_document_dicts_of_entities):
 
     return list_of_document_dicts_of_entities
     
-                #### OLD
-    #             if entities_spans[n][0] > entities_spans[i][1]:
-    # #                if doc_entities[n][0][0] > doc_entities[i][0][1]: #if n entity begins after the end char of i entity, dont continue search
-    #                 break
-    #             if span_includes(entities_spans[n], entities_spans[i]): #if n includes i, 
-    #                 doc_entities[entities_spans[n]][1] = doc_entities[entities_spans[n]][1].union(doc_entities[entities_spans[i]][1]) #union of the sets of systems that  
-    #                 doc_entities[entities_spans[n]][0] = len(doc_entities[entities_spans[n]][1])
-    #                 #doc_entities[n][1] += document_entities[i][1] # add the count of other entity to the longer entity
-                    
-    #                 aggregated_entities.add(entities_spans[i]) #add i to be removed 
-    #                 #dont check if i should be removed, move to next i
-    #                 continue 
-                
-    #             if spans_intersects(entities_spans[n], entities_spans[i]): 
-    #                 #if n intersects with i, union n and i, remove change n to new, set i to be removed
-
-    #                 a = entities_spans[n]
-    #                 b = entities_spans[i]
-    #                 if entities_spans[i][2] == entities_spans[n][2]: #if intersects, but has the same Surface form - remove the less found (probably error)
-    #                     n_ners = doc_entities[entities_spans[n]][0]
-    #                     i_ners = doc_entities[entities_spans[i]][0]
-    #                     if n_ners >= i_ners:
-    #                         doc_entities[entities_spans[n]][1] = doc_entities[entities_spans[n]][1].union(doc_entities[entities_spans[i]][1]) #union of the sets of systems that  
-    #                         doc_entities[entities_spans[n]][0] = len(doc_entities[entities_spans[n]][1])
-                  
-    #                         aggregated_entities.add(entities_spans[i]) #remove i
-    #                         break
-    #                     else:
-    #                         doc_entities[entities_spans[i]][1] = doc_entities[entities_spans[i]][1].union(doc_entities[entities_spans[n]][1]) #union of the sets of systems that  
-    #                         doc_entities[entities_spans[i]][0] = len(doc_entities[entities_spans[i]][1])
- 
-    #                         aggregated_entities.add(entities_spans[n]) #remove n
-    #                         continue
-
-    #                 #if intersects - get the widest span - union of n and i
-    #                 new_start = min(entities_spans[n][0], entities_spans[i][0])
-    #                 new_end = max(entities_spans[n][1], entities_spans[i][1])
-    #                 new_len = new_end - new_start
-
-    #                 start_string = entities_spans[n][2] if new_start == entities_spans[n][0] else entities_spans[i][2] 
-    #                 end_string = entities_spans[n][2] if new_end == entities_spans[n][1] else entities_spans[i][2]
-    #                 difference = new_len - len(start_string)
-    #                 if difference > 0:
-    #                     new_surface_form = start_string + end_string[-difference:] 
-    #                 #else start_string
-
-
-    #                 ###???
-
-    #                 # doc_entities[entities_spans[n]][1] = doc_entities[entities_spans[n]][1].union(doc_entities[entities_spans[i]][1]) #union of the sets of systems that  
-    #                 # doc_entities[entities_spans[n]][0] = len(doc_entities[entities_spans[n]][1])
-    #                 # #doc_entities[n][1] += document_entities[i][1] # add the count of other entity to the longer entity
-                    
-    #                 aggregated_entities.add(entities_spans[i]) #add i to be removed 
-    #                 break #dont check if i should be removed, move to next i
-        
-        # for doc_entity in aggregated_entities:
-        #     doc_entities.pop(doc_entity)   
-    return list_of_document_dicts_of_entities
 
 def count_completeness(new_entities_docs, ners_count, gold_entity_count, per_doc_gold_entity_count):
     per_doc_thresholds = []
