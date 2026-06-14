@@ -1,3 +1,4 @@
+import re
 import time
 import requests
 import json
@@ -16,6 +17,13 @@ def SaveResult(result, results_path, filename):
 
     with open(out_path, "w") as file:
         file.write(json_result)
+
+def SaveTable(table, path, filename):
+    Path(path).mkdir(parents=True, exist_ok=True)
+    out_path = Path(path) / f"{filename}.tex"
+
+    with open(out_path, "w") as file:
+        file.write(table)
 
 
 class Singleton(type):
@@ -94,4 +102,34 @@ def recursive_replace(object_dict, value_to_replace, value):
                 object_dict[key] = recursive_replace(object_dict[key],value_to_replace,value)
     return object_dict
 
-#get_proxy_list()
+
+def find_closest_substr(plain_text:str, substr_:str ,index:int):
+    #strip from start and end the non alphanumeric characters
+    #split on non alphanumeric parts
+    #get first alphanumeric part, find with that
+    substr = re.sub(r'\A\W+|\W+\Z', '', substr_.lower(), flags=re.I)
+    split = re.split('[^a-zA-Z0-9]', substr)
+    split = list(filter(lambda part: part != '',split))
+    substr = split[0] if len(split) > 0 else substr
+    #print(substr)
+    if substr == "":
+        return -1 #if substr is empty - return -1
+
+    all_occurrences = []
+    search_from = 0
+    end_id = plain_text.lower().find(substr, index) #find closest after
+    if end_id == -1:
+        end_id = index
+
+    possible_id = -1
+    #for up to closest after or index if none after
+    while(possible_id <= end_id):
+        possible_id = plain_text.lower().find(substr, search_from)
+        if(possible_id == -1):
+            break
+        all_occurrences.append(possible_id)
+        search_from = possible_id + len(substr)
+
+    all_occurrences.sort(key = lambda id: abs(id - index))
+    
+    return all_occurrences[0] if len(all_occurrences) > 0 else -1

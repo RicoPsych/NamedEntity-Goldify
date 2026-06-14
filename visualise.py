@@ -28,6 +28,8 @@ metrics_full = [Metrics.GrammarCorrectness, Metrics.OccurenceKB, Metrics.Occuren
 metrics_kb = [Metrics.GrammarCorrectness, Metrics.OccurenceKB , Metrics.DispersityCtx, Metrics.DispersityAnnot,  Metrics.Coherence, Metrics.Consistency, Metrics.Completeness]
 metrics_class = [Metrics.GrammarCorrectness, Metrics.OccurenceClass , Metrics.DispersityCtx, Metrics.DispersityAnnot,  Metrics.Coherence, Metrics.Consistency, Metrics.Completeness]
 # metrics = [Metrics.DispersityAnnot, Metrics.DispersityCtx]
+recomputed_completeness = [Metrics.GrammarCorrectness, Metrics.OccurenceClass , Metrics.DispersityCtx, Metrics.DispersityAnnot,  Metrics.Coherence, Metrics.Consistency, Metrics.Completeness]
+
 
 pipeline_full = VisualisationPipeline(metrics_full, occurrence_top_n=20)
 pipeline_kb = VisualisationPipeline(metrics_kb, occurrence_top_n=20)

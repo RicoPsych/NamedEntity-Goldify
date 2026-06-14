@@ -72,9 +72,13 @@ class DockerManager(metaclass=Singleton):
                     else:
                         tqdm.tqdm.write(f"Pulling: {container_name}")
                         img = self.client.images.pull(image_name)
-
+                #override config, if passed
+                if detach:
+                    run_config["detach"] = detach
+                if command:
+                    run_config["command"] = command                 
                 #container = self.client.containers.run(image=img, name=container_name, ports = {f'{container_port}/tcp':host_port}, detach=True) --gpus all
-                container = self.client.containers.run(**run_config, detach = detach, command = command)
+                container = self.client.containers.run(**run_config)
             #time.sleep(3)
             tqdm.tqdm.write(f"Started: {container_name}")
             return container

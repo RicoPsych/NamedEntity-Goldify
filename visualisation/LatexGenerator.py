@@ -6,7 +6,7 @@ from visualisation.VisualisationUtils import load_results
 def latex_bold(str):
     return r"\textbf{" + f"{str}" + "}"
 
-def GenerateLatexComparisonTable(results_paths:list[Path], col_size = 1.5):
+def GenerateLatexComparisonTable(results_paths:list[Path], col_size = 1.5, metric_file_names = None):
     
     table_columns_names = ["Metric Name"]
     dataset_names = []
@@ -36,7 +36,7 @@ def GenerateLatexComparisonTable(results_paths:list[Path], col_size = 1.5):
         COMPLETENESS:"entity_completeness.json",
         CONTEXTDISP:"dispersity_contexts.json",
         ANNOTDISP:"dispersity_annotations.json"
-    }
+    } if metric_file_names is None else metric_file_names
     
 
     for result_path in results_paths:
@@ -270,5 +270,6 @@ def GenerateLatexComparisonTable(results_paths:list[Path], col_size = 1.5):
     table_result_str += r"\end{tabular}"
 
     print(table_result_str)
+    return table_result_str
     # save_table_path = Path(save_table_path)
     # save_table_path.mkdir(exist_ok=True)
